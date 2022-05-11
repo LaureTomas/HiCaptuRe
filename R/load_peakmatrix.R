@@ -10,7 +10,7 @@
 #' @importFrom tidyr separate
 #' @importFrom dplyr as_tibble group_by filter slice ungroup n summarise_all
 #' @importFrom stringr str_replace_all
-#' @importFrom GenomicInteractions GenomicInteractions annotateInteractions
+#' @importFrom GenomicInteractions GenomicInteractions
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split mcols
 #' @importFrom data.table fread
 #'
