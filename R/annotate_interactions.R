@@ -19,7 +19,7 @@ annotate_interactions <- function(interactions, annotation,...)
 {
 
   ## Reading annotation file
-  hind <- fread(annotation, stringsAsFactors = F,...)
+  hind <- data.table::fread(annotation, stringsAsFactors = F,...)
 
   ## Checking if file has 5 columns
   if (ncol(hind)!=5)
@@ -47,7 +47,7 @@ annotate_interactions <- function(interactions, annotation,...)
     ## When using a annotation file with only baits the OE get a NA so we have to change that
     interactions@elementMetadata[is.na(interactions@elementMetadata[,"gene_II"]),"gene_II"] <- "."
 
-    interactions <- .annotate_POEuce(interactions)
+    interactions <- annotate_POEuce(interactions)
 
     return(interactions)
   }
