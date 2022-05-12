@@ -9,7 +9,7 @@
 #' @return GenomicInteractions object annotated
 #'
 #' @importFrom magrittr `%>%`
-#' @importFrom GenomicInteractions annotateInteractions anchorOne anchorTwo
+#' @importFrom GenomicInteractions annotateInteractions anchorOne anchorTwo resetAnnotations
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split
 #' @importFrom ddpcr quiet
 #' @importFrom data.table fread
@@ -76,9 +76,9 @@ annotate_POEuce <- function(interactions)
   ucel <- GenomicRanges::split(uce[, -1], as.factor(uce$gene_I))
 
   annotation.features = list(P = proml, OE = oel, uce = ucel)
-  resetAnnotations(interactions)
+  GenomicInteractions::resetAnnotations(interactions)
   suppressMessages(GenomicInteractions::annotateInteractions(interactions, annotation.features))
-  interactions$int <- paste(anchorOne(interactions)$node.class,anchorTwo(interactions)$node.class, sep = "_")
+  interactions$int <- paste(GenomicInteractions::anchorOne(interactions)$node.class,GenomicInteractions::anchorTwo(interactions)$node.class, sep = "_")
 
   return(interactions)
 }
