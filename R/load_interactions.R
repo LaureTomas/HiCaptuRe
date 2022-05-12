@@ -14,6 +14,7 @@
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split mcols
 #' @importFrom data.table fread
 #' @importFrom progressr progressor
+#' @importFrom S4Vectors elementMetadata
 #'
 #' @export
 load_interactions2 <- function(file)
@@ -29,7 +30,9 @@ load_interactions2 <- function(file)
     ## Reading file and detecting file format depending of the number of columns
     ## Tranforming all file formats to seqmonk to proceed with the cleaning
 
-    p <- progressor(steps = 10)
+    p <- progressr::progressor(steps = 10)
+    # progressr::handlers(global = TRUE)
+    handlers("progress")
 
     p(sprintf("Reading File"))
     data <- data.table::fread(file = file, header = T, stringsAsFactors = F, na.strings = "")
@@ -233,11 +236,11 @@ load_interactions2 <- function(file)
       gi@anchor1[cond] <- a2
       gi@anchor2[cond] <- a1
 
-      elementMetadata(gi[cond])[c("gene_I","gene_II")] <- elementMetadata(gi[cond])[c("gene_II","gene_I")]
+      S4Vectors::elementMetadata(gi[cond])[c("gene_I","gene_II")] <- S4Vectors::elementMetadata(gi[cond])[c("gene_II","gene_I")]
 
 
-      cols <- sort(grep("_I",colnames(elementMetadata(gi[cond]))[1:5],value = T))
-      elementMetadata(gi[cond])[cols] <- elementMetadata(gi[cond])[cols[c(rbind(seq(2,length(cols),2),seq(1,length(cols),2)))]]
+      cols <- sort(grep("_I",colnames(S4Vectors::elementMetadata(gi[cond]))[1:5],value = T))
+      S4Vectors::elementMetadata(gi[cond])[cols] <- S4Vectors::elementMetadata(gi[cond])[cols[c(rbind(seq(2,length(cols),2),seq(1,length(cols),2)))]]
 
 
 
