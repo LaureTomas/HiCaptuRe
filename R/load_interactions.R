@@ -17,7 +17,7 @@
 #' @importFrom S4Vectors elementMetadata
 #'
 #' @export
-load_interactions2 <- function(file)
+load_interactions <- function(file)
 {
   if (!file.exists(file))
   {
