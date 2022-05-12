@@ -13,6 +13,7 @@
 #' @importFrom GenomicInteractions GenomicInteractions
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split mcols
 #' @importFrom data.table fread
+#' @importFrom progressr progressor
 #'
 #' @export
 load_interactions2 <- function(file)
@@ -28,8 +29,9 @@ load_interactions2 <- function(file)
     ## Reading file and detecting file format depending of the number of columns
     ## Tranforming all file formats to seqmonk to proceed with the cleaning
 
-    progress_bar = txtProgressBar(min=1, max=10, style = 3, char="=")
+    p <- progressor(steps = 10)
 
+    p(sprintf("Reading File"))
     data <- data.table::fread(file = file, header = T, stringsAsFactors = F, na.strings = "")
 
     if (ncol(data) > 10)
@@ -44,7 +46,7 @@ load_interactions2 <- function(file)
       df <- df[order(df$index), ]
       data <- df[, -c(which(colnames(df)=="index"))]
       data$rownames <- 1:nrow(data)
-      setTxtProgressBar(progress_bar, value = 2)
+      p(sprintf("Preparing Data"))
 
 
       ## Extracting name of all cell types in this peakmatrix
@@ -53,7 +55,7 @@ load_interactions2 <- function(file)
       ## Putting together in one line each interactions and duplicating them
       new_data <- rbind(cbind(data[seq(1, nrow(data), 2), ], data[seq(2, nrow(data), 2), ]),
                         cbind(data[seq(2, nrow(data), 2), ], data[seq(1, nrow(data), 2), ]))
-      setTxtProgressBar(progress_bar, value = 3)
+      p(sprintf("Sorting Data"))
 
       ## Ordering by the original line that came
       new_data <- dplyr::as_tibble(new_data[order(as.numeric(rownames(new_data))), ], .name_repair = "minimal")
@@ -67,7 +69,7 @@ load_interactions2 <- function(file)
         data <- data.table::fread(file = file, header = F, stringsAsFactors = F, na.strings = "")
         message(paste(basename(file), "is in seqmonk format"))
         data$rownames <- 1:nrow(data)
-        setTxtProgressBar(progress_bar, value = 2)
+        p(sprintf("Preparing Data"))
 
       }
       if (ncol(data)==10)
@@ -81,7 +83,7 @@ load_interactions2 <- function(file)
         df <- df[order(df$index),]
         data <- df[,1:6]
         data$rownames <- 1:nrow(data)
-        setTxtProgressBar(progress_bar, value = 2)
+        p(sprintf("Preparing Data"))
 
       }
       if (ncol(data)==3)
@@ -99,7 +101,7 @@ load_interactions2 <- function(file)
                             convert = FALSE, extra = "warn", fill = "warn") %>%
             tidyr::separate(6, into=c("c","d"), sep = ",", remove = TRUE,
                             convert = FALSE, extra = "warn", fill = "warn")
-          setTxtProgressBar(progress_bar, value = 2)
+          p(sprintf("Preparing Data"))
 
         }
         if(grepl(":",data[1,1]))
@@ -117,7 +119,7 @@ load_interactions2 <- function(file)
                             convert = FALSE, extra = "warn", fill = "warn") %>%
             tidyr::separate(5, into=c("e","f"), sep = ",", remove = TRUE,
                             convert = FALSE, extra = "warn", fill = "warn")
-          setTxtProgressBar(progress_bar, value = 2)
+          p(sprintf("Preparing Data"))
 
         }
 
@@ -139,7 +141,7 @@ load_interactions2 <- function(file)
       ## Putting together in one line each interactions and duplicating them
       new_data <- rbind(cbind(data[seq(1,nrow(data),2),],data[seq(2,nrow(data),2),]),
                         cbind(data[seq(2,nrow(data),2),],data[seq(1,nrow(data),2),]))
-      setTxtProgressBar(progress_bar, value = 3)
+      p(sprintf("Sorting Data"))
 
       ## Ordering by the original line that came
       new_data <- dplyr::as_tibble(new_data[order(as.numeric(rownames(new_data))),],
@@ -149,7 +151,7 @@ load_interactions2 <- function(file)
                               "chr_II","start_II","end_II","gene_II","R_II","CS_II","rownames2")
     }
 
-    setTxtProgressBar(progress_bar, value = 4)
+    p(sprintf("Real Duplicates"))
 
     ## Here, could be real duplicated interactions, check with unique
     new_data$gene_I <- stringr::str_replace_all(new_data$gene_I, "\\|",",")
@@ -161,7 +163,7 @@ load_interactions2 <- function(file)
     new_data <- unique(new_data)
 
     dup_real <- (nrow(data)-nrow(new_data))/2
-    setTxtProgressBar(progress_bar, value = 5)
+    p(sprintf("CS Duplicates"))
 
     ## Filtering those duplicated interactions with different CS, by the higher one
     new_data <- new_data[, lapply(.SD, max),by=list(chr_I, start_I, end_I, chr_II, start_II, end_II)]
@@ -174,11 +176,9 @@ load_interactions2 <- function(file)
 
     if(all.equal(new_data[,grep("CS_I(?!I).*",colnames(new_data),perl = T),with=F],new_data[,grep("CS_II.*",colnames(new_data)),with=F],check.attributes = F))
     {
-      message("\nCleaning interactions file correct")
-
       ## Keeping only one of the artificial inverted duplications
       new_data <- dplyr::slice(new_data, seq(1,dplyr::n(),2))
-      setTxtProgressBar(progress_bar, value = 6)
+      p(sprintf("Cleaning"))
 
       ## Removing interactions that involve the MT chromosome
 
@@ -203,7 +203,7 @@ load_interactions2 <- function(file)
         new_data[new_data$gene_I == ".",] <- c(new_data[new_data$gene_I == ".",c(5:8,1:4,9,10)])
       }
 
-      setTxtProgressBar(progress_bar, value = 7)
+      p(sprintf("Sorting"))
 
 
 
@@ -213,7 +213,7 @@ load_interactions2 <- function(file)
       region2 <- GenomicRanges::makeGRangesFromDataFrame(new_data[,grep("chr_II",colnames(new_data)):ncol(new_data)],seqnames.field = "chr_II", start.field = "start_II", end.field = "end_II", keep.extra.columns = T)
 
       gi <- GenomicInteractions::GenomicInteractions(region1, region2)
-      setTxtProgressBar(progress_bar, value = 8)
+      p(sprintf("GenomicInteractions"))
 
       names(GenomicRanges::mcols(gi)) <- gsub(x = names(GenomicRanges::mcols(gi)), pattern = "anchor[1-2]\\.", "")
 
@@ -222,7 +222,7 @@ load_interactions2 <- function(file)
       gi <- annotate_POEuce(gi)
 
 
-      setTxtProgressBar(progress_bar, value = 9)
+      p(sprintf("Type of Interactions"))
 
       ## Sorting interactions P_P
       cond <- (gi@anchor1 > gi@anchor2) & (!grepl("OE",gi$int))
@@ -242,9 +242,9 @@ load_interactions2 <- function(file)
 
 
       gi@elementMetadata <- gi@elementMetadata[,-which(colnames(gi@elementMetadata) %in% c("counts"))]
-      setTxtProgressBar(progress_bar, value = 10)
-      close(progress_bar)
-      message("\n")
+
+      p(sprintf("Finishing"))
+
       return(gi)
     }
     else(
