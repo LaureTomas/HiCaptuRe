@@ -1,11 +1,39 @@
 Package: HiCaptuRe
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: In-house R package for Capture Hi-C data handling
+Version: 0.0.1
+Author: Laureano Tomás Daza
+Maintainer: Laureano Tomás Daza <ltomas@carrerasresearch.org>
+Description: Package for dealing with liCHi-C data in Javierre Lab.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Depends:
+    GenomicInteractions,
+    tidyverse
+Imports:
+    magrittr,
+    tidyr,
+    dplyr,
+    stringr,
+    GenomicRanges,
+    IRanges,
+    reshape2,
+    tibble,
+    Rsamtools,
+    ggplot2,
+    utils,
+    UpSetR,
+    gplots,
+    gridExtra,
+    data.table,
+    igraph,
+    networkD3,
+    S4Vectors,
+    regioneR,
+    SummarizedExperiment    
+RoxygenNote: 7.1.2
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
