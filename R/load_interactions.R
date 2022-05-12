@@ -31,8 +31,6 @@ load_interactions2 <- function(file)
     ## Tranforming all file formats to seqmonk to proceed with the cleaning
 
     p <- progressr::progressor(steps = 10)
-    # progressr::handlers(global = TRUE)
-    handlers("progress")
 
     p(sprintf("Reading File"))
     data <- data.table::fread(file = file, header = T, stringsAsFactors = F, na.strings = "")
