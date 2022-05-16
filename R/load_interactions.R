@@ -192,7 +192,7 @@ load_interactions <- function(file)
         new_data <- new_data[,c("chr_I","start_I","end_I","gene_I","ID_I",
                                 "chr_II","start_II","end_II","gene_II","ID_II",
                                 "dist",cell_types),with=F]
-        new_data2[new_data2$gene_I == ".", ] <- c(new_data2[new_data2$gene_I == ".", c(6:10, 1:5, 11:ncol(new_data2))])
+        new_data[new_data$gene_I == ".", ] <- c(new_data[new_data$gene_I == ".", c(6:10, 1:5, 11:ncol(new_data))])
 
       }else
       {
