@@ -11,7 +11,6 @@
 #' @importFrom magrittr `%>%`
 #' @importFrom GenomicInteractions annotateInteractions anchorOne anchorTwo resetAnnotations
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split
-#' @importFrom ddpcr quiet
 #' @importFrom data.table fread
 #'
 #' @export
@@ -39,7 +38,7 @@ annotate_interactions <- function(interactions, annotation,...)
     annot <- GenomicRanges::split(hindGR[,-1], as.factor(hind[[cn[5]]]))
     annotation.features = list(annot=annot)
 
-    ddpcr::quiet(GenomicInteractions::annotateInteractions(interactions, annotation.features))
+    suppressMessages(GenomicInteractions::annotateInteractions(interactions, annotation.features))
 
     interactions@elementMetadata[,"gene_I"] <- unlist(GenomicInteractions::anchorOne(interactions)@elementMetadata[,"annot.id"])
     interactions@elementMetadata[,"gene_II"] <- unlist(GenomicInteractions::anchorTwo(interactions)@elementMetadata[,"annot.id"])
