@@ -51,7 +51,7 @@ load_interactions <- function(file)
 
 
       ## Extracting name of all cell types in this peakmatrix
-      cell_types <- colnames(data)[7:(ncol(data)-1)]
+      cell_types <- paste0("CS_",colnames(data)[7:(ncol(data)-1)])
 
       ## Putting together in one line each interactions and duplicating them
       new_data <- rbind(cbind(data[seq(1, nrow(data), 2), ], data[seq(2, nrow(data), 2), ]),
