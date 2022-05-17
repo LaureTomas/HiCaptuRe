@@ -38,8 +38,8 @@ distance_summary <- function(interactions, breaks=seq(0,10^6,10^5), sample="samp
   total <- dplyr::as_tibble(as.data.frame(interactions)[,c("distance","int")]) %>% dplyr::mutate(breaks=cut(distance,breaks = breaks)) %>%
     dplyr::group_by(breaks) %>% dplyr::summarise(value=n()) %>% tibble::add_column(int="Total",total_per_int=NA,sample=sample)
 
-  per_int <- dplyr::as_tibble(as.data.frame(interactions)[,c("distance","int")]) %>% dplyr::mutate(breaks=cut(distance,breaks = breaks)) %>%
-    dplyr::group_by(int,breaks) %>% dplyr::summarise(value=n())
+  per_int <- suppressMessages(dplyr::as_tibble(as.data.frame(interactions)[,c("distance","int")]) %>% dplyr::mutate(breaks=cut(distance,breaks = breaks)) %>%
+    dplyr::group_by(int,breaks) %>% dplyr::summarise(value=n()))
 
   total_int <- dplyr::as_tibble(as.data.frame(interactions)[,c("distance","int")]) %>%
     dplyr::group_by(int) %>% dplyr::summarise(total_per_int=n(),sample=sample)
