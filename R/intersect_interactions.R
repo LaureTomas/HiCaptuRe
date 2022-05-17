@@ -22,30 +22,33 @@
 intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
 {
   la <- list()
-  if (length(interactions_list)< 6)
+  if (distance.boxplot)
   {
-    progress_bar = txtProgressBar(min=1, max=length(interactions_list)+length(interactions_list)^2, style = 3, char="=")
-  }else
-  {
-    progress_bar = txtProgressBar(min=1, max=length(interactions_list), style = 3, char="=")
+    steps <- length(interactions_list)+length(interactions_list)^2 + 1
   }
+  if (!distance.boxplot)
+  {
+    steps <- length(interactions_list)+length(interactions_list)^2
+  }
+  p <- progressr::progressor(steps = steps)
 
   if(distance.boxplot)
   {
 
     for (i in 1:length(interactions_list))
     {
+      p(sprintf("Preparing"))
       a <- interactions_list[[i]]
       a$dist <- GenomicInteractions::calculateDistances(a)
       aa <- paste(interactions_list[[i]]@regions[interactions_list[[i]]@anchor1],interactions_list[[i]]@regions[interactions_list[[i]]@anchor2],sep = "_")
       names(aa) <- a$dist
       la[[names(interactions_list)[i]]] <- aa
-      setTxtProgressBar(progress_bar, value = i)
-
     }
 
     ## Based on the function FromList from UpSetR package
     ## Generate a dataframe with the intersection and the distance of each interaction
+    p(sprintf("Boxplot"))
+
     elements1 <- unlist(la,use.names = T)
     names(elements1) <- gsub("\\.","",gsub(paste0(names(la),collapse = "|"),"",names(elements1)))
     elements <- unique(elements1)
@@ -64,50 +67,43 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     colnames(data_final)[ncol(data_final)] <- "dist"
     data_final$log10dist <- log10(data_final$dist)
 
-    plot <- suppressWarnings(UpSetR::upset(data_final, nsets = length(interactions_list),boxplot.summary = "log10dist",...))
+    p(sprintf("Upset"))
+    uplot <- suppressWarnings(UpSetR::upset(data_final, nsets = length(interactions_list),boxplot.summary = "log10dist",...))
   }
   else
   {
     for (i in 1:length(interactions_list))
     {
+      p(sprintf("Preparing"))
       aa <- paste(interactions_list[[i]]@regions[interactions_list[[i]]@anchor1],interactions_list[[i]]@regions[interactions_list[[i]]@anchor2],sep = "_")
       la[[names(interactions_list)[i]]] <- aa
-      setTxtProgressBar(progress_bar, value = i)
     }
-    plot <- suppressWarnings(UpSetR::upset(UpSetR::fromList(la), nsets = length(interactions_list),...))
+
+    p(sprintf("Upset"))
+    uplot <- suppressWarnings(UpSetR::upset(UpSetR::fromList(la), nsets = length(interactions_list),...))
   }
-  if(length(interactions_list) < 6)
+
+  p(sprintf("Venn"))
+  venn_plot <- gplots::venn(la,show.plot = F)
+  p(sprintf("Intersections"))
+  int <- attr(venn_plot,"intersections")
+
+  for (i in 1:length(int))
   {
-    plot2 <- gplots::venn(la,show.plot = F)
-    int <- attr(gplots::venn(la,show.plot = F),"intersections")
+    p(sprintf("Intersections to GI"))
+    int_name <- str_split(names(int[i]),":")[[1]][1]
+    df <- dplyr::as_tibble(str_split_fixed(int[[i]],pattern = ":|-|_",n = 6))
+    a1 <- GenomicRanges::makeGRangesFromDataFrame(df[,1:3], seqnames.field = "V1",start.field = "V2",end.field = "V3")
+    a2 <- GenomicRanges::makeGRangesFromDataFrame(df[,4:6], seqnames.field = "V4",start.field = "V5",end.field = "V6")
+    gi <- GenomicInteractions::GenomicInteractions(a1,a2)
+    gi <- IRanges::subsetByOverlaps(interactions_list[[int_name]],gi)
 
-    if (length(int) == 1)
-    {
-      is <- length(interactions_list)+length(interactions_list)^2
-    }else
-    {
-      is <- seq(length(interactions_list),length(interactions_list)+length(interactions_list)^2,length.out=length(int)) ## for the progress bar
-    }
-
-
-    for (i in 1:length(int))
-    {
-      int_name <- str_split(names(int[i]),":")[[1]][1]
-      df <- dplyr::as_tibble(str_split_fixed(int[[i]],pattern = ":|-|_",n = 6))
-      a1 <- GenomicRanges::makeGRangesFromDataFrame(df[,1:3], seqnames.field = "V1",start.field = "V2",end.field = "V3")
-      a2 <- GenomicRanges::makeGRangesFromDataFrame(df[,4:6], seqnames.field = "V4",start.field = "V5",end.field = "V6")
-      gi <- GenomicInteractions::GenomicInteractions(a1,a2)
-      gi <- IRanges::subsetByOverlaps(interactions_list[[int_name]],gi)
-
-      int[[i]] <- gi
-      setTxtProgressBar(progress_bar, value = is[i])
-    }
-    message("\nTo see the venn diagram do: plot(variable$venn)")
-    return(list(upset_plot=plot,venn = plot2,intersections=int))
+    int[[i]] <- gi
   }
-  else
-  {
-    message("\nVenn diagram and intersections only can be generated with less than 6 sets")
-    return(list(upset_plot = plot))
-  }
+
+
+  message("\nTo see the venn diagram: plot(variable$venn)")
+  return(list(intersections=int, upset_plot=uplot, venn = venn_plot))
+
+
 }
