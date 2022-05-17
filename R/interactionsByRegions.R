@@ -1,4 +1,4 @@
-#' Filters GenomicInteractions object by integrating a regions file
+#' Filters GenomicInteractions object by integrating regions
 #'
 #' This function filters a GenomicInteractions object from load_interactions by integrating regions and classifies the interactions by type of interactions based on if the right, left or both end overlap with a region
 #'
