@@ -10,7 +10,7 @@
 #'
 #' @importFrom magrittr `%>%`
 #' @importFrom dplyr as_tibble summarise group_by n full_join mutate
-#' @importFrom GenomicInteractions calculateDistances
+#' @importFrom GenomicInteractions calculateDistances is.cis
 #' @importFrom tibble add_column
 #'
 #' @export
@@ -23,7 +23,7 @@ distance_summary <- function(interactions, breaks=seq(0,10^6,10^5), sample="samp
   ## Set breaks
   breaks <- unique(c(0,breaks,Inf))
 
-  interactions <- interactions[is.cis(interactions)]
+  interactions <- interactions[GenomicInteractions::is.cis(interactions)]
   ## Compute distance
 
   message("Computing Distance")
