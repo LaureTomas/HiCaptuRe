@@ -25,7 +25,6 @@ Imports:
     utils,
     UpSetR,
     gplots,
-    gridExtra,
     data.table,
     igraph,
     S4Vectors,
