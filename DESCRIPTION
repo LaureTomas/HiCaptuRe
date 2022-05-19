@@ -18,7 +18,6 @@ Imports:
     GenomicRanges,
     progressr,
     IRanges,
-    reshape2,
     tibble,
     ggplot2,
     UpSetR,
@@ -26,8 +25,7 @@ Imports:
     data.table,
     igraph,
     S4Vectors,
-    regioneR,
-    SummarizedExperiment
+    DT
 RoxygenNote: 7.1.2
 Suggests: 
     knitr,
