@@ -10,9 +10,10 @@
 #' @return tibble object with the ibed table and save it in the desired output file
 #'
 #' @importFrom GenomicInteractions export.igraph
-#' @importFrom dplyr as_tibble arrange
+#' @importFrom dplyr as_tibble arrange bind_rows
 #' @importFrom data.table fwrite
 #' @importFrom igraph simplify as_edgelist
+#' @importFrom stats setNames
 #'
 #' @export
 export_interactions <- function(interactions, file, type = "ibed", over.write=F)
@@ -102,6 +103,22 @@ export_interactions <- function(interactions, file, type = "ibed", over.write=F)
 
           data.table::fwrite(int_df,file = file, col.names = F, row.names = F, quote = F, sep = "\t")
         }
+        if (type == "seqmonk")
+        {
+          int_df <- dplyr::as_tibble(interactions)[,c("seqnames1","start1","end1","gene_I",
+                                                      "seqnames2","start2","end2","gene_II",
+                                                      "reads","CS")]
+
+          int_df$ID <- 1:nrow(int_df)
+          df1 <- int_df[,c("seqnames2","start2","end2","gene_II",
+                           "reads","CS","ID")]
+
+          df2 <- int_df[,c("seqnames1","start1","end1","gene_I",
+                           "reads","CS","ID")]
+
+          seqmonk <- dplyr::bind_rows(df1, stats::setNames(df2, names(df1))) %>% dplyr::arrange(ID)
+          data.table::fwrite(seqmonk[,-ncol(seqmonk)],file = file, col.names = F, row.names = F, quote = F, sep = "\t")
+        }
       }
     }
 
@@ -183,6 +200,22 @@ export_interactions <- function(interactions, file, type = "ibed", over.write=F)
                                                       "name","CS","strand1","strand2")]
 
           data.table::fwrite(int_df,file = file, col.names = F, row.names = F, quote = F, sep = "\t")
+        }
+        if (type == "seqmonk")
+        {
+          int_df <- dplyr::as_tibble(interactions)[,c("seqnames1","start1","end1","gene_I",
+                                                      "seqnames2","start2","end2","gene_II",
+                                                      "reads","CS")]
+
+          int_df$ID <- 1:nrow(int_df)
+          df1 <- int_df[,c("seqnames2","start2","end2","gene_II",
+                           "reads","CS","ID")]
+
+          df2 <- int_df[,c("seqnames1","start1","end1","gene_I",
+                           "reads","CS","ID")]
+
+          seqmonk <- dplyr::bind_rows(df1, stats::setNames(df2, names(df1))) %>% dplyr::arrange(ID)
+          data.table::fwrite(seqmonk[,-ncol(seqmonk)],file = file, col.names = F, row.names = F, quote = F, sep = "\t")
         }
       }
     }
