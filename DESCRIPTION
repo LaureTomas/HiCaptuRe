@@ -24,10 +24,10 @@ Imports:
     gplots,
     data.table,
     igraph,
-    S4Vectors,
-    DT
+    S4Vectors
 RoxygenNote: 7.1.2
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    DT
 VignetteBuilder: knitr
