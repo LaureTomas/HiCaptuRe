@@ -1,0 +1,321 @@
+---
+title: "Exploring Capture Hi-C Data with HiCaptuRe"
+author: "Laureano Tomás-Daza"
+date: '2022-05-18'
+output: 
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 16px;
+      color: Black;
+  }
+td {  /* Table  */
+  font-size: 14px;
+}
+h1.title {
+  font-size: 38px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 28px;
+  color: DarkRed;
+}
+h2 { /* Header 2 */
+    font-size: 22px;
+  color: DarkRed;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkRed;
+}
+code.r{ /* Code block */
+    font-size: 16px;
+}
+
+</style>
+
+<img src="/home/ltomas/MEGA/PhD_documents/Fotos/logo.png" style="position:absolute;top:0px;right:0px;" />
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# 1. Introduction
+
+Welcome to the first R package of Javierre Lab, if you are here that means you want to learn how to explore Capture Hi-C (CHi-C) data in an easy way.
+```{r, comment=F, message=F,R.options}
+library(HiCaptuRe)
+```
+
+## 1.1. Where does my data comes from?
+
+If you don't know already what is CHi-C (especially PCHi-C and liCHi-C), you should read some of the mandatory papers of the lab (don't take them too seriously):  
+
+* [Promoter Capture Hi-C: High-resolution, Genome-wide Profiling of Promoter Interactions](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6102006/pdf/jove-136-57320.pdf)
+
+* [HiCUP: pipeline for mapping and processing Hi-C data](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4706059/pdf/f1000research-4-7903.pdf)
+
+* [CHiCAGO: Robust Detection of DNA Looping Interactions in Capture Hi-C data](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0992-2)
+
+* [Detecting chromosomal interactions in Capture Hi-C data with CHiCAGO and companion tools](nature.com/articles/s41596-021-00567-5)
+
+Basically the idea behind CHi-C is to enrich the Hi-C library in baits (i.e. promoters) using designed oligos, to increase the resolution of Hi-C and explore for the especific interactome of the cells.
+
+Once the libraries are sequenced we analyse the FASTQ files with HICUP, which aligns our data to the reference genome and removes several artefacts of the technique. Once we get our filtered BAM file from HICUP, we calculate the capture efficiency of the protocol and we only select those paired reads that are captured at least at one end. Finally, we run the Chicago pipeline, which performs the interactions calling based on the distributions of reads around our baits (promoters).
+
+![**Schematic Workflow of CHI-C**](/home/ltomas/Pictures/workflow.png)
+
+## 1.2. Main Chicago Outputs
+
+When you run Chicago you can get the results in 3 different formats:
+
+#### **washU_text**
+
+```
+##                  V1                  V2   V3  
+## chr20,119103,138049 chr20,523682,536237 6.00  
+## chr20,161620,170741   chr20,73978,76092 5.17  
+## chr20,233983,239479 chr20,206075,209203 5.35  
+```
+
+* It's the format used to upload your data to the [WashU Browser](https://epigenomegateway.wustl.edu/)  
+* It consists in 3 columns: coordinates of the first end, coordinates of the second end and Chicago score.
+
+
+#### **seqMonk**
+
+```
+## V1     V2     V3      V4 V5   V6
+## 20 119103 138049 DEFB126  6 6.00
+## 20 523682 536237 CSNK2A1  6 6.00
+## 20 161620 170741 DEFB128 16 5.17  
+## 20  73978  76092       . 16 5.17
+```
+
+* It's the format used to upload your data to the seqMonk software developed in the Babraham Institute. 
+* An interaction is represented by two rows: the first row is the bait, the second the other end  
+* It consists of 6 columns: chromosome, start, end, annotation, read number and Chicago score. 
+
+#### **interBed - ibed**
+
+```
+##   bait_chr bait_start bait_end                  bait_name otherEnd_chr
+## 1       20     119103   138049                    DEFB126           20
+## 2       20     161620   170741                    DEFB128           20
+##   otherEnd_start otherEnd_end otherEnd_name N_reads score
+## 1         523682       536237       CSNK2A1       6  6.00
+## 2          73978        76092             .      16  5.17
+```
+
+* It's our favourite standard format (so get used to its name)
+* Each row represents an interaction
+* First 4 columns give information about the chromosome, start, end and name of the bait fragment
+* Next 4 columns give information about the chromosome, start, end and name of the other end that interacts with the bait fragment
+* N_reads is the number of reads
+* Score is the Chicago score
+
+For more information check the Chicago package vignette
+
+## 1.3. Example data
+
+In this package you can find several example data files to play aroung with HiCaptuRe.
+
+These example files are:
+
+* **seqmonk_example.seqmonk**: output of Chicago in seqmonk format. It's annotated with an old annotation  
+* **ibed_example.ibed**: output of Chicago in ibed format. It's annotated with the new annotation   
+* **annotation_example.txt**: annotation file for each HindIII fragment  
+* **regions_example.bed**: bed file with regions obtained from some omic analysis (ChIP-seq, ATAC-seq,...)  
+
+Let's save them in variables:
+
+```{r}
+seqmonk <- system.file("extdata", "seqmonk_example.seqmonk", package="HiCaptuRe")
+ibed <- system.file("extdata", "ibed_example.ibed", package="HiCaptuRe")
+annotation <- system.file("extdata", "annotation_example.txt", package="HiCaptuRe")
+regions <- system.file("extdata", "regions_example.bed", package="HiCaptuRe")
+```
+
+
+# 2. Functions
+
+## Load_interactions
+
+The first step is loading the interaction file into R, to do so we use the function ```load_interactions```.
+
+This function will read the file and remove some "technical artefacts" of Chicago, like duplicates interactions. And it gives us the interactions in an easy readable format, a ```GenomicInteractions``` object.
+
+We can load any type of interactions files, the 3 types from Chicago (whasU, Seqmonk and ibed), and also the peakmatrix generated using the [makePeakMatrix](https://bitbucket.org/chicagoTeam/chicago/src/master/chicagoTools/) function from ChicagoTools.
+
+```{r}
+interactions_seqmonk <- load_interactions(file = seqmonk)
+interactions_seqmonk
+```
+```{r}
+interactions_ibed <- load_interactions(file = ibed)
+interactions_ibed
+```
+
+The ```GenomicInteractions``` format is basically the same as the ibed format with an extra column specifying the type of interactions. Then, why use the ```GenomicInteractions``` object and not a simple table? Because this type of object is optimized to store and manipulate genomic intervals in an efficient and easy way.
+
+## Annotate_interactions
+
+If we have a closer look to the 2 previous files, we can see that the genes' names are in the ENSEMBL transcript ID format, but maybe we prefer them in a more readble format like gene_name. To do so we use the function ```annotate_interactions```.
+
+For this function to work we need an interaction object and the annotation file, the annotation file should always consist in: chr,	start,	end,	ID,	annotation. So for each HindIII (or your restriction enzyme) fragment we have an unique ID and its annotation. It can be a file with all the fragments of the genome, or only the captured ones.
+
+```{r}
+interactions_seqmonk <- annotate_interactions(interactions = interactions_seqmonk, annotation = annotation)
+interactions_seqmonk
+```
+
+
+## Distance_summary
+
+By now we have done basic things, reading the annotation file or reannotating the interactions. But now we want to analyse/explore our data in detail. 
+
+The first typical exploration that we do at the lab is splitting the interactions by distance intervals, to do so we use the function ```distance_summary```
+
+```{r}
+distances <- distance_summary(interactions = interactions_seqmonk, breaks = seq(0,10^6,10^5), sample = "Example")
+```
+```{r, eval=F}
+distances
+```
+```{r,echo=F}
+DT::datatable(distances)
+```
+
+The function ```distance_summary``` gives us a dataframe with the number of interactions for each distance interval and type of interacion (P_P, P_OE).
+
+There is an additional argument in the function that is ```sample``` in case you want to specify your sample and it will be add as a column. It's useful if you want to do it for different cell types and merge them.
+
+## Plot_distance_summary
+
+Once we have the dataframe of the interactions by distances we can plot them directly with the function ```plot_distance_summary```, as we can set an additional parameter to normalize the numbers or not, the options are:
+
+#### - **absolute**
+
+This option plots the absolute values of interactions that are present in the interaction object.
+
+```{r, eval=T}
+plot_distance_summary(distances = distances,type_of_value = "absolute")
+```
+
+
+#### - **by_int_type**
+
+This option plots the previous values but normalised by the number of interactions of each type, i.e., each bar of P_P is divided by the total number of P_P interactions.
+
+```{r, eval=T}
+plot_distance_summary(distances = distances,type_of_value = "by_int_type")
+```
+
+
+#### - **by_total**
+
+This option plots the absolute values but normalised by the total number of interactions in the object, i.e., each bar is divided by the total number of interactions.
+
+```{r, eval=T}
+plot_distance_summary(distances = distances,type_of_value = "by_total")
+```
+
+
+
+## Intersect_interactions
+
+The next thing we may want to explore is if our different samples share interactions, or get the specific interactions of each sample, to do so we have the ```intersect_interactions``` function. This function needs a list of interactions objects, and we have an additional parameters to plot a boxplot of the distance of each intersection.
+
+```{r, warning=FALSE}
+interactions_list <- list(seqmonk=interactions_seqmonk,
+                          ibed=interactions_ibed)
+intersections <- intersect_interactions(interactions_list = interactions_list, distance.boxplot = T)
+```
+
+The results contains 3 elements:
+
+##### - **intersections list**
+
+It's a list with all the possible intersections, each intersections gives us a new ```GenomicInteractions``` objects to play with.
+
+```{r}
+names(intersections$intersections)
+```
+
+In this case we have the common interactions between the seqmonk and the ibed, and then the specific interactions of the ibed and the specific interactions of the seqmonk.
+
+##### - **Venn diagram**
+
+A classical Venn diagram of the intersections, it cannot plot the intersections of more than 5 datasets.
+
+```{r, eval=T}
+plot(intersections$venn)
+```
+
+
+
+#### - **UpSet Plot**
+
+The UpSet plot gives us the same information of a venn diagram but in a clearer and more organised way, and it has no limit in the number of datasets.
+
+```{r, eval=T}
+intersections$upset_plot
+```
+
+
+## interactionsByRegions
+
+A classical analysis in the lab is to select those interactions that contains a peak of ChIP-seq (or any other genomic coordinates), to do so we have the ```interactionsByRegions``` function. This function needs an interactions object and a bed file with the genomic coordinates. It also can be used to do Virtual 4C of a given region.
+
+```{r}
+int_regions <- interactionsByRegions(interactions = interactions_seqmonk,
+                                 regions = regions)
+int_regions[,3:9]
+```
+
+The integration results in a subset of the original dataset with several new columns:
+
+* **int**: this column tells us the type of interactions as before, but in this case it also tells us if the interactions overlaps with a region at one end or both.
+* **overlap_I/II**: it's a TRUE/FALSE column depending if the overlaps a region or not
+* **n_overlap_I/II**: this columns contains the number of overlaps in case of T in the previous column
+
+
+## InteractionsByBaits
+
+In the case we are working with RNA-seq, we may be interested in subseting our interactions based on a list of genes (differentially expressed...), to do so we have the ```interactionsByBaits``` functions. It also can be used to do Virtual 4C of a given gene or bait.
+
+```{r}
+HOXA <- c("HOXA1","HOXA2","HOXA3","HOXA4","HOXA5","HOXA6","HOXA7","HOXA8","HOXA9","HOXA10","HOXA11","HOXA12","HOXA13")
+
+int_genes <- interactionsByBaits(interactions = interactions_seqmonk, baits = HOXA)
+```
+
+The result is an ```GenomicInteractions``` object that is a subset of the original one but only with those interactions that contain the given genes.
+
+
+
+# 3. Hands-on: Let's try the package!
+
+Now you have to try a bit the package, it won't be too difficult. The main task are:
+
+* 1. Load the example ibed file
+* 2. Annotate it with gene_names
+* 3. Integrate it with the regions file
+* 4. Plot the distances of the integrated results
+* 5. Generate washU files for the old WashU browser for the original ibed and the integrated one.
+
+
+The results should look like this washU [session](http://epigenomegateway.wustl.edu/legacy/?genome=hg19&session=4iITt5QbFw&statusId=208144129)
