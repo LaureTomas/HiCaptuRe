@@ -29,7 +29,8 @@ Imports:
     igraph,
     S4Vectors,
     regioneR,
-    SummarizedExperiment    
+    SummarizedExperiment,
+    utils
 RoxygenNote: 7.1.2
 Suggests: 
     knitr,
