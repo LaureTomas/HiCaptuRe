@@ -25,7 +25,7 @@ interactionsByBaits <- function(interactions, baits)
   else
   {
     message(paste("There are",length(interactions_baits), "interaction with the given bait(s)"))
+    return(interactions_baits)
   }
-  return(gi)
 
 }
