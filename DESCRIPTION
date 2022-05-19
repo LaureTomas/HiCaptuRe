@@ -9,8 +9,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-    GenomicInteractions,
-    tidyverse
+    GenomicInteractions
 Imports:
     magrittr,
     tidyr,
@@ -22,15 +21,13 @@ Imports:
     reshape2,
     tibble,
     ggplot2,
-    utils,
     UpSetR,
     gplots,
     data.table,
     igraph,
     S4Vectors,
     regioneR,
-    SummarizedExperiment,
-    utils
+    SummarizedExperiment
 RoxygenNote: 7.1.2
 Suggests: 
     knitr,
