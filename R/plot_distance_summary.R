@@ -33,7 +33,7 @@ plot_distance_summary <- function(distances, type_of_value="absolute")
 
       distancesT <- distances[distances$int == "Total",]
 
-      g <- ggplot2::ggplot(distancesT, ggplot2::ggplot2::aes(x=breaks, y=value, fill=breaks)) +
+      g <- ggplot2::ggplot(distancesT, ggplot2::aes(x=breaks, y=value, fill=breaks)) +
         ggplot2::geom_bar(width = 1, size = 1, stat = "identity",position="dodge") +
         ggplot2::labs(x="Distances",y="Number of interactions", fill="Distances",
              title = paste0("Total Number of interactions of ",unique(distances1$sample)),
