@@ -23,11 +23,11 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
   ## Setting pipe operator from magrittr package
   `%>%` <- magrittr::`%>%`
 
-  if (class(regions) == "GRanges")
+  if (inherits(regions,what = "GRanges"))
   {
     regionsGR <- regions
   }
-  if (class(regions) == "character")
+  if (inherits(regions,what = "character"))
   {
     ## Reading regions and transforming to Genomic Ranges
     if(!is.null(chr) & !is.null(start) & !is.null(end)) ## If the file has header
