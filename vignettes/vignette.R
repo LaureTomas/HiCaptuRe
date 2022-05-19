@@ -34,14 +34,14 @@ distances <- distance_summary(interactions = interactions_seqmonk, breaks = seq(
 ## ----echo=F-------------------------------------------------------------------
 DT::datatable(distances)
 
-## ---- eval=F------------------------------------------------------------------
-#  plot_distance_summary(distances = distances,type_of_value = "absolute")
+## ---- eval=T------------------------------------------------------------------
+plot_distance_summary(distances = distances,type_of_value = "absolute")
 
-## ---- eval=F------------------------------------------------------------------
-#  plot_distance_summary(distances = distances,type_of_value = "by_int_type")
+## ---- eval=T------------------------------------------------------------------
+plot_distance_summary(distances = distances,type_of_value = "by_int_type")
 
-## ---- eval=F------------------------------------------------------------------
-#  plot_distance_summary(distances = distances,type_of_value = "by_total")
+## ---- eval=T------------------------------------------------------------------
+plot_distance_summary(distances = distances,type_of_value = "by_total")
 
 ## ---- warning=FALSE-----------------------------------------------------------
 interactions_list <- list(seqmonk=interactions_seqmonk,
@@ -51,14 +51,19 @@ intersections <- intersect_interactions(interactions_list = interactions_list, d
 ## -----------------------------------------------------------------------------
 names(intersections$intersections)
 
-## ---- eval=F------------------------------------------------------------------
-#  plot(intersections$venn)
+## ---- eval=T------------------------------------------------------------------
+plot(intersections$venn)
 
-## ---- eval=F------------------------------------------------------------------
-#  intersections$upset_plot
+## ---- eval=T------------------------------------------------------------------
+intersections$upset_plot
 
 ## -----------------------------------------------------------------------------
 int_regions <- interactionsByRegions(interactions = interactions_seqmonk,
                                  regions = regions)
 int_regions[,3:9]
+
+## -----------------------------------------------------------------------------
+HOXA <- c("HOXA1","HOXA2","HOXA3","HOXA4","HOXA5","HOXA6","HOXA7","HOXA8","HOXA9","HOXA10","HOXA11","HOXA12","HOXA13")
+
+int_genes <- interactionsByBaits(interactions = interactions_seqmonk, baits = HOXA)
 

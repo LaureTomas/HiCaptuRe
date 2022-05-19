@@ -313,9 +313,9 @@ Now you have to try a bit the package, it won't be too difficult. The main task 
 
 * 1. Load the example ibed file
 * 2. Annotate it with gene_names
-* 3. Integrate it with the regions file
+* 3. Filter it with the regions file
 * 4. Plot the distances of the integrated results
 * 5. Generate washU files for the old WashU browser for the original ibed and the integrated one.
 
 
-The results should look like this washU [session](http://epigenomegateway.wustl.edu/legacy/?genome=hg19&session=4iITt5QbFw&statusId=208144129)
+The results should look like this washU (chr7:26053158-28451694) [session](http://epigenomegateway.wustl.edu/legacy/?genome=hg38&session=3DT1woBW9E&statusId=1169939858)
