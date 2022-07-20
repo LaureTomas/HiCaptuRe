@@ -17,7 +17,7 @@
 annotate_interactions <- function(interactions, annotation,...)
 {
 
-  if (class(annotation) == "character")
+  if (is(annotation,"character"))
   {
     ## Reading annotation file
     annotation <- data.table::fread(annotation, stringsAsFactors = F,...)
