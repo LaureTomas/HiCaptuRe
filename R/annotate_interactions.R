@@ -3,7 +3,7 @@
 #' This function annotate a GenomicInteractions object from load_interactions, based on a given annotations file
 #'
 #' @param interactions GenomicInteractions object from \code{\link{load_interactions}}
-#' @param annotation full path to annotations file
+#' @param annotation full path to annotations file or a dataframe
 #' @param ... additional parameters for fread
 #'
 #' @return GenomicInteractions object annotated
@@ -17,39 +17,47 @@
 annotate_interactions <- function(interactions, annotation,...)
 {
 
-  ## Reading annotation file
-  hind <- data.table::fread(annotation, stringsAsFactors = F,...)
-
-  ## Checking if file has 5 columns
-  if (ncol(hind)!=5)
+  if (class(annotation) == "character")
   {
-    stop("File has not 5 columns \nAnnotation must be chr start end fragID annotation")
+    ## Reading annotation file
+    annotation <- data.table::fread(annotation, stringsAsFactors = F,...)
   }
-  else
+  if (any(class(annotation) == "data.frame"))
   {
-    message("Remember: Annotation must be chr start end fragID annotation")
+    ## Checking if file has 5 columns
+    if (ncol(annotation)!=5)
+    {
+      stop("File has not 5 columns \nAnnotation must be chr start end fragID annotation")
+    }
+    else
+    {
+      message("Remember: Annotation must be chr start end fragID annotation")
 
-    ## Making a GRanges from the annotation and setting the NA as non-annotated
-    cn <- colnames(hind)
-    hind[[cn[5]]][is.na(hind[[cn[5]]])] <- "non-annotated"
-    hindGR <- GenomicRanges::makeGRangesFromDataFrame(hind, seqnames.field = cn[1], start.field = cn[2], end.field = cn[3], keep.extra.columns = T)
+      ## Making a GRanges from the annotation and setting the NA as non-annotated
+      cn <- colnames(annotation)
+      annotation[[cn[5]]][is.na(annotation[[cn[5]]])] <- "non-annotated"
+      annotationGR <- GenomicRanges::makeGRangesFromDataFrame(annotation, seqnames.field = cn[1], start.field = cn[2], end.field = cn[3], keep.extra.columns = T)
 
-    ## Creating annotation list
-    annot <- GenomicRanges::split(hindGR[,-1], as.factor(hind[[cn[5]]]))
-    annotation.features = list(annot=annot)
+      ## Creating annotation list
+      annot <- GenomicRanges::split(annotationGR[,-1], as.factor(annotation[[cn[5]]]))
+      annotation.features = list(annot=annot)
 
-    suppressMessages(GenomicInteractions::annotateInteractions(interactions, annotation.features))
+      suppressMessages(GenomicInteractions::annotateInteractions(interactions, annotation.features))
 
-    interactions@elementMetadata[,"gene_I"] <- unlist(GenomicInteractions::anchorOne(interactions)@elementMetadata[,"annot.id"])
-    interactions@elementMetadata[,"gene_II"] <- unlist(GenomicInteractions::anchorTwo(interactions)@elementMetadata[,"annot.id"])
+      interactions@elementMetadata[,"gene_I"] <- unlist(GenomicInteractions::anchorOne(interactions)@elementMetadata[,"annot.id"])
+      interactions@elementMetadata[,"gene_II"] <- unlist(GenomicInteractions::anchorTwo(interactions)@elementMetadata[,"annot.id"])
 
-    ## When using a annotation file with only baits the OE get a NA so we have to change that
-    interactions@elementMetadata[is.na(interactions@elementMetadata[,"gene_II"]),"gene_II"] <- "."
+      ## When using a annotation file with only baits the OE get a NA so we have to change that
+      interactions@elementMetadata[is.na(interactions@elementMetadata[,"gene_II"]),"gene_II"] <- "."
 
-    interactions <- annotate_POEuce(interactions)
+      interactions <- annotate_POEuce(interactions)
 
-    return(interactions)
+      return(interactions)
+    }
+
   }
+
+
 
 }
 

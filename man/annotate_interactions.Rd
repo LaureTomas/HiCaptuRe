@@ -9,7 +9,7 @@ annotate_interactions(interactions, annotation, ...)
 \arguments{
 \item{interactions}{GenomicInteractions object from \code{\link{load_interactions}}}
 
-\item{annotation}{full path to annotations file}
+\item{annotation}{full path to annotations file or a dataframe}
 
 \item{...}{additional parameters for fread}
 }
