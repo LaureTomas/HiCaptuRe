@@ -1,7 +1,7 @@
 Package: HiCaptuRe
 Type: Package
 Title: In-house R package for Capture Hi-C data handling
-Version: 0.1.1
+Version: 0.1.2
 Author: Laureano Tomás Daza
 Maintainer: Laureano Tomás Daza <ltomas@carrerasresearch.org>
 Description: Package for dealing with liCHi-C data in Javierre Lab.
