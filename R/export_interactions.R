@@ -193,6 +193,8 @@ export_interactions <- function(interactions, file, type = "ibed", over.write=F)
         {
           net <- igraph::simplify(export.igraph(interactions))
           nodes_edges <- igraph::as_edgelist(net)
+          data.table::fwrite(nodes_edges,file = file, col.names = F, row.names = F, quote = F, sep = "\t")
+
         }
         if (type == "bedpe")
         {
