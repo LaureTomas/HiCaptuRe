@@ -234,8 +234,6 @@ load_interactions <- function(file)
       gi@anchor1[cond] <- a2
       gi@anchor2[cond] <- a1
 
-      S4Vectors::elementMetadata(gi[cond])[c("gene_I","gene_II")] <- S4Vectors::elementMetadata(gi[cond])[c("gene_II","gene_I")]
-
 
       cols <- sort(grep("_I",colnames(S4Vectors::elementMetadata(gi[cond]))[1:5],value = T))
       S4Vectors::elementMetadata(gi[cond])[cols] <- S4Vectors::elementMetadata(gi[cond])[cols[c(rbind(seq(2,length(cols),2),seq(1,length(cols),2)))]]
