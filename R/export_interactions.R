@@ -4,7 +4,7 @@
 #'
 #' @param interactions GenomicInteractions object from \code{\link{load_interactions}}
 #' @param file full path to desired output file (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)
-#' @param type type of output format
+#' @param type type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)
 #' @param over.write T/F to over write the output file
 #'
 #' @return tibble object with the ibed table and save it in the desired output file
