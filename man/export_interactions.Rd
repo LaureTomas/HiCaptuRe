@@ -11,7 +11,7 @@ export_interactions(interactions, file, type = "ibed", over.write = F)
 
 \item{file}{full path to desired output file (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)}
 
-\item{type}{type of output format}
+\item{type}{type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)}
 
 \item{over.write}{T/F to over write the output file}
 }
