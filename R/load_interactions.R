@@ -213,10 +213,11 @@ load_interactions <- function(file)
       region1 <- GenomicRanges::makeGRangesFromDataFrame(new_data[,1:(grep("chr_II",colnames(new_data))-1)],seqnames.field = "chr_I", start.field = "start_I", end.field = "end_I", keep.extra.columns = T)
       region2 <- GenomicRanges::makeGRangesFromDataFrame(new_data[,grep("chr_II",colnames(new_data)):ncol(new_data)],seqnames.field = "chr_II", start.field = "start_II", end.field = "end_II", keep.extra.columns = T)
 
-      region1$ID_I <- subjectHits(findOverlaps(region1,hindGR))
-      region2$ID_II <- subjectHits(findOverlaps(region2,hindGR))
-
-      gi <- GenomicInteractions::GenomicInteractions(region1, region2[,c(1,4,2,3)])
+      # region1$ID_I <- subjectHits(findOverlaps(region1,hindGR))
+      # region2$ID_II <- subjectHits(findOverlaps(region2,hindGR))
+      #
+      # gi <- GenomicInteractions::GenomicInteractions(region1, region2[,c(1,4,2,3)])
+      gi <- GenomicInteractions::GenomicInteractions(region1, region2)
       p(sprintf("GenomicInteractions"))
 
       names(GenomicRanges::mcols(gi)) <- gsub(x = names(GenomicRanges::mcols(gi)), pattern = "anchor[1-2]\\.", "")
