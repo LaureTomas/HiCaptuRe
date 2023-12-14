@@ -1,0 +1,402 @@
+---
+title: "HiCaptuRe Functions"
+author: "Laureano Tomás-Daza"
+date: "2023-12-11"
+output: 
+  html_document:
+    css: style.css
+    theme: simplex
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{vignette}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this vignette we will show you the main functions of HiCapture and
+how they work. To start playing with the function first we need some
+example data provided in the package. Let's save them in variables:
+
+```{r, example_data}
+ibed1 <- system.file("extdata", "ibed1_example.ibed", package="HiCaptuRe")
+ibed2 <- system.file("extdata", "ibed2_example.ibed", package="HiCaptuRe")
+annotation <- system.file("extdata", "annotation_example.txt", package="HiCaptuRe")
+regions <- system.file("extdata", "regions_example.bed", package="HiCaptuRe")
+```
+
+```{r, comment=F, message=F,library}
+library(HiCaptuRe)
+```
+
+# Importing interaction data: `load_interactions`
+
+The first step is loading the interaction file into R, to do so we use
+the function `load_interactions`.
+
+This function reads the file and removes some "technical artefacts" of
+Chicago, like duplicated interactions. And it gives us the interactions
+in an easy readable format, a `HiCaptuRe` object, which contains a
+`GenomicInteractions` object.
+
+We can load different types of interaction files: ibed, seqmonk, washU
+(and it old format), bedpe and peakmatrix. The function detect
+automatically which is the format of our file.
+
+```{r,load_interactions}
+ibed1 <- load_interactions(file = ibed1)
+```
+
+We can see that it detects that the file is in ibed format. And the
+function removes several interactions duplicated.
+
+```{r,ibed1}
+ibed1
+```
+
+The resulting `HiCaptuRe` object looks like a `GenomicInteractions`
+object but with some extra slots. This object contains the coordinates
+of both anchors of the interaction and metadata:
+
+\- `bait_1` and `bait_2` : annotation of each restriction fragment, in
+case one of them does not have annotation it shows a dot (".")
+
+\- `ID_1` and `ID_2` : the ID of the restriction fragment when digesting
+the genome with an specific restriction enzyme. This ID comes from the
+function `digest_genome` .
+
+\- `reads` : The number of reads detected in each interaction.
+
+\- `CS` : The Chicago Score of each interaction.
+
+\- `counts` : It's a column added when creating a `GenomicInteractions`
+object, that tells the number of times that each interaction appears, in
+this case it will always be 1.
+
+\- `int` : The type of interaction. It could be B_B or B_OE, meaning
+interaction between 2 baits (B_B) or between a bait and an other-end
+(B_OE).
+
+\- `distance` : The distance between the midpoint of the anchors of the
+interactions.
+
+**NOTE**: When loading certain type of files, such as WashU format or
+bedpe, they lack of some information such as the number of reads or the
+annotation. In these cases the function assigns a value to these
+columns. In the annotation it adds "non-annotated" to all fragments and
+in the reads columns it adds a zero to all of them.
+
+Now, let's have a look at the new extra slots of the `HiCaptuRe` object.
+
+```{r,slots}
+slotNames(ibed1)
+```
+
+There are several slots that belong to the `GenomicInteractions` object,
+the new ones are: **parameters**, **ByBaits** and **ByRegions**.
+
+These slots are filled while running certain functions, with this
+function we have only initialize the slot parameters, so let's have a
+look at it:
+
+```{r, parameters}
+ibed1@parameters
+```
+
+This slot contains a list with the parameters used to run each function.
+
+So we can see that the last step that we run was "load" and the 2
+arguments used in this function. But we can see that there is another
+step before called "digest". This step refers to the function
+`digest_genome`.
+
+## Digesting the Genome: `digest_genome`
+
+This function generates the restriction fragments resulting from the
+virtual digestion of a given genome. The default arguments are for the
+restriction enzyme HindIII in the genome version GRCh38.
+
+There are some interesting arguments:
+
+-   `RE_name`, `motif` and `cut_position`. These arguments refer to the
+    restriction enzyme used to digest the genome. We have to indicate
+    the recognition motif of the enzyme and the cut position of the
+    enzyme inside that motif.
+
+```{=html}
+<!-- -->
+```
+-   `select_chr`. In most genome there are more chromosomes than the
+    commonly known (1:22, X, Y), so here we can specify which
+    chromosomes we want to digest
+
+-   `PAR_mask` and `PAR_file`. Pseudoautosomical Regions (PAR) are
+    regions of the sexual chromosomes that are equal between X and Y,
+    and in certain genomes might be masked. For example in Ensembl human
+    genome the PAR region of chromosome Y is mask, while in UCSC version
+    is not. This fact affects the digestion of the genome, only in
+    chromosome Y, generating different restriction fragments depending
+    on the version. With these 2 arguments we can specify if we want to
+    mask those regions and provide a file with the coordinates of such
+    regions. The package already contains the PAR coordinates for the
+    GRCh38 genome.
+
+**NOTE**: This function is internally called each time we run
+`load_interactions` to provide the ID of the restriction fragment so
+each file that we load have the same IDs. The first time that
+`digest_genome` is called takes a while to digest a certain genome, but
+the next times is much faster since the digested genome is saved on
+cache.
+
+# Annotating interaction object: `annotate_interactions`
+
+This function allows us to annotate the baits of the interactions,
+particularly useful when loading files without annotation such as WashU
+format or bedpe files.
+
+When performing a C-HiC experiment we need a capture library, that
+essentially capture certain regions of the genome of our interest. The
+annotation that we used here is that capture library, meaning, for each
+restriction fragment of interest we need an annotation (gene name,
+enhancer ID, copy number variant ID, etc.).
+
+```{r, annotate}
+ibed_annotated <- annotate_interactions(interactions = ibed1,
+                                        annotation = annotation)
+ibed_annotated
+```
+
+We can see that in the object `ibed1` the columns bait_1 and bait_2
+contains Ensembl transcript ID, while now it contains a mix of Ensembl
+gene ID and gene names, because we change its annotation.
+
+As we saw before the slot **parameters** is updated again with the
+arguments used in this function.
+
+```{r, annotate_parameters}
+ibed_annotated@parameters
+```
+
+# Filtering interactions by Baits of interest: `interactionsByBaits`
+
+This function subset the interactions by any given bait or list of
+baits, meaning, it returns the interactions which any anchor of the
+interaction contains a bait of interest.
+
+Since out data is focused on promoters, we might be interested in
+subsetting our data to only select those interactions that involved a
+set of promoters of interest. These promoters of interest could came
+from an RNA-seq analysis, or any other type of analysis.
+
+For example, we might be interested in these 3 genes, so we used the
+function to subset the interactions.
+
+```{r, interactionsByBaits}
+baits_of_interest <- c("MTOR","APOA2","TP53")
+ibed_byBaits <- interactionsByBaits(interactions = ibed_annotated,
+                                    baits = baits_of_interest)
+```
+
+The function informs us that some baits do not have any interactions.
+
+```{r,interactionsByBaits_show}
+ibed_byBaits
+```
+
+Now we have a subset with only 18 interactions containing our baits of
+interest.
+
+As previous functions, the slop **parameters** is updated again, but now
+we will check the slop **ByBaits**, that is only updated by this
+function.
+
+```{r, ByBaits}
+ibed_byBaits@ByBaits
+```
+
+This slot gives us a **bait-centric** summary, so for each bait of
+interests it gives us its fragment ID, the number of interactions in
+which is involved, the number of other-end that are interacting with it,
+the ID of the interacting regions and their annotations.
+
+Each time we run this function a new element is added to this slot, so
+we can keep track of the different times that we have run this function.
+
+# Integrating Regions of interest: `interactionsByRegions`
+
+This function subset the interactions by any given region or set of
+regions, meaning, it returns the interactions which any anchor of the
+interaction overlaps with a region of interest.
+
+This function is particularly useful when we want to integrate regions
+from other omic, such as ChIP-seq, CUT&RUN, copy number variants, etc.
+
+```{r, interactionsByRegions}
+ibed_byRegions <- interactionsByRegions(interactions = ibed_annotated,
+                                        regions = regions)
+```
+
+The function informs us of the resulting number of interactions.
+
+```{r, interactionsByRegions_show}
+ibed_byRegions
+```
+
+This function adds 8 extra metadata columns, 4 for each anchor. These
+columns are:
+
+-   `region_*`: T/F column indicating if a region overlap this anchor.
+
+-   `Nregion_*`: numeric column indicating the number of regions
+    overlapping this anchor.
+
+-   `regionID_*`: the ID of the regions overlapping the anchor.
+
+-   `regionCov_*`: the number of base pairs of the anchor overlapping
+    with the region. In case more than one region overlap it's the sum
+    of the base pairs of all regions overlapping.
+
+As previous functions, the slop **parameters** is updated again, but now
+we will check the slop **ByRegions**, that is only updated by this
+function.
+
+```{r, byRegions}
+ibed_byRegions@ByRegions
+```
+
+This slot gives us a **region-centric** summary, so for each region of
+interests it gives us its ID, the number of fragments, the number of
+Other-End fragments, and the fragment ID that overlaps.
+
+Each time we run this function a new element is added to this slot, so
+we can keep track of the different times that we have run this function.
+
+# Intersecting sets of interactions: `intersect_interactions`
+
+This function intersects the several interactions set to classify the
+interactions depending on the samples where are present, basically a
+classic Venn diagram.
+
+To use this function we need at least 2 `HiCaptuRe` objects in a named
+list, so we need to load another interaction file.
+
+```{r, ibed2}
+ibed2 <- load_interactions(file = ibed2)
+ibed2_annotated <- annotate_interactions(interactions = ibed2, annotation = annotation)
+```
+
+```{r, intersect_interactions}
+interactions_list <- list(A = ibed_annotated, B = ibed2_annotated)
+output <- intersect_interactions(interactions_list = interactions_list)
+```
+
+This function gives us a list with 3 elements:
+
+-   **intersections**: contains a list of `HiCaptuRe` objects of the
+    resulting intersections. In this case the specific interactions of
+    A, of B and the common ones.
+
+```{r, intersections}
+lapply(output$intersections, function(x) x[1:2])
+```
+
+-   **upset**: contains an upset plot of the intersections of
+    interactions
+
+```{r, upset, out.width="50%"}
+output$upset
+```
+
+-   **venn**: upset: contains a venn diagram of the intersections of
+    interactions
+
+```{r, venn, out.width="50%"}
+output$venn
+```
+
+# Summarise interactions by distance: `distance_summary`
+
+This function allows us to get a summary of the number of interactions
+by their distance. This is interesting to compare the profile of
+distances between conditions.
+
+```{r, distance_summary}
+dist_sum <- distance_summary(interactions = ibed_annotated,
+                             breaks = seq(0, 10^6, 10^5),
+                             sample = "ibed1")
+dist_sum
+```
+
+The output is a table with several columns that gives us information of
+each type of interaction in each range of distance. The columns are:
+
+-   **int**. Type of interaction: B_B, B_OE or Total (B_B + B_OE)
+
+-   **total_per_int**. Total number of interaction of each type
+
+-   **sample**. Name of the sample
+
+-   **HiCaptuRe**. Total number of interactions present in the input
+    `HiCaptuRe` object.
+
+-   **break**. Distance range
+
+-   **value**. Number of interactions of this type in this break.
+
+# Plotting the summary of distance: `plot_distance_summary`
+
+This function plots the output of the previous one. We can plot the
+values in 3 different ways:
+
+-   **Absolute**: the values without any modification.
+
+```{r, absolute, fig.show="hold", out.width="50%"}
+plots <- plot_distance_summary(distances = dist_sum, type_of_value = "absolute")
+plots$int_dist
+plots$total_dist
+```
+
+-   **by_int_type**: the values divided by the total number of
+    interactions of each type.
+
+```{r, by_int_type, out.width="50%"}
+plots <- plot_distance_summary(distances = dist_sum, type_of_value = "by_int_type")
+plots$int_dist_norm_int
+
+```
+
+-   **by_total**: the values divided by the total number of interactions
+    in the `HiCaptuRe` object.
+
+```{r, by_total, fig.show="hold",  out.width="50%"}
+plots <- plot_distance_summary(distances = dist_sum, type_of_value = "by_total")
+plots$int_dist_norm_total
+plots$total_dist_norm_total
+```
+
+# Exporting proccessed interaction data: `export_interactions`
+
+This is the final function. It used to export the interactions that we
+have generated using all the previous functions.
+
+The `HiCaptuRe` object can be exported in several different format,
+being the default **ibed** format. The other formats are: peakmatrix,
+washU, washUold, cytoscape and bedpe.
+
+```{r, export, eval=F}
+export_interactions(interactions = ibed_annotated,
+                    file = "/path/to/folder/ibed_annotated.ibed",
+                    type = "ibed")
+```
+
+**NOTE**: the peakmatrix format can only be used if the **HiCaptuRe**
+object comes from a peakmatrix. And if you want to export a peakmatrix
+in any other format several files will be exported, one per each sample
+present in the peakmatrix.
