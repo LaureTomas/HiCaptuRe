@@ -4,16 +4,27 @@
 \alias{export_interactions}
 \title{Export interactions in the desired output format}
 \usage{
-export_interactions(interactions, file, type = "ibed", over.write = F)
+export_interactions(
+  interactions,
+  file,
+  format = "ibed",
+  over.write = F,
+  washU_seqname = "chr",
+  cutoff = 5
+)
 }
 \arguments{
 \item{interactions}{GenomicInteractions object from \code{\link{load_interactions}}}
 
 \item{file}{full path to desired output file (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)}
 
-\item{type}{type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)}
+\item{format}{type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)}
 
 \item{over.write}{T/F to over write the output file}
+
+\item{washU_seqname}{string to add to the seqnames to export to washU format}
+
+\item{cutoff}{Chicago score cutoff to export interactions}
 }
 \value{
 tibble object with the ibed table and save it in the desired output file
