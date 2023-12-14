@@ -2,18 +2,20 @@
 % Please edit documentation in R/interactionsByBaits.R
 \name{interactionsByBaits}
 \alias{interactionsByBaits}
-\title{Filters GenomicInteractions object by baits}
+\title{Filters HiCaptuRe object by baits}
 \usage{
-interactionsByBaits(interactions, baits)
+interactionsByBaits(interactions, baits, sep = ",")
 }
 \arguments{
-\item{interactions}{a GenomicInteractions object from \code{\link{load_interactions}}}
+\item{interactions}{a HiCaptuRe object}
 
 \item{baits}{character vector containing bait names}
+
+\item{sep}{character separating baits names when several baits in same fragment}
 }
 \value{
-GenomicInteractions object, subset of the original based on the give baits
+HiCaptuRe object, subset of the original based on the given baits. And an additional slot ByBatis with bait-centric statistics
 }
 \description{
-his function filters a GenomicInteractions object from load_interactions by a set of given bait(s)
+This function filters a HiCaptuRe object from load_interactions by a set of given bait(s)
 }
