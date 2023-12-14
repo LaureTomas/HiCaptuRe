@@ -1,0 +1,3 @@
+name	seqnames	start	end	organism
+PAR1	Y	10001	2781479	human
+PAR2	Y	56887903	57217415	human
