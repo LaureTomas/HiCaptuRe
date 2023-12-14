@@ -1,7 +1,7 @@
 Package: HiCaptuRe
 Type: Package
 Title: In-house R package for Capture Hi-C data handling
-Version: 0.1.2
+Version: 0.10.0
 Author: Laureano Tomás Daza
 Maintainer: Laureano Tomás Daza <ltomas@carrerasresearch.org>
 Description: Package for dealing with liCHi-C data in Javierre Lab.
@@ -9,22 +9,32 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-    GenomicInteractions
+    R (>= 4.2)
 Imports:
-    magrittr,
-    tidyr,
-    dplyr,
-    stringr,
-    GenomicRanges,
-    progressr,
-    IRanges,
-    tibble,
-    ggplot2,
-    UpSetR,
-    gplots,
+    Biostrings,
+    BSgenome,
+    cli,
     data.table,
+    dplyr,
+    GenomeInfoDb,
+    GenomicInteractions,
+    GenomicRanges,
+    ggplot2,
+    ggpubr,
+    ggVennDiagram,
+    gplots,
     igraph,
-    S4Vectors
+    IRanges,
+    magrittr,
+    memoise,
+    methods,
+    progressr,
+    S4Vectors,
+    stringr,
+    tibble,
+    tidyr,
+    UpSetR,
+    utils
 RoxygenNote: 7.2.3
 Suggests: 
     knitr,
