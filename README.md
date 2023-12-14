@@ -7,3 +7,8 @@ It's an on going project so it still being developed but it's fully functional, 
 library(devtools)
 install_github("LaureTomas/HiCaptuRe",force = T)
 ```
+
+If you also want the vignettes
+```R
+install_github("LaureTomas/HiCaptuRe",force = T,build_vignettes = T)
+```
