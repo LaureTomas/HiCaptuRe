@@ -12,15 +12,32 @@
 #' 3. 'intersections' a list of GenomicInteractions objects for all the intersections
 #'
 #' @importFrom dplyr as_tibble
-#' @importFrom stringr str_split_fixed
-#' @importFrom GenomicInteractions GenomicInteractions calculateDistances
+#' @importFrom stringr str_split
+#' @importFrom GenomicInteractions GenomicInteractions
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom gplots venn
 #' @importFrom UpSetR upset fromList
+#' @importFrom S4Vectors elementMetadata
+#' @importFrom ggVennDiagram ggVennDiagram
 #'
 #' @export
 intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
 {
+
+  param <- lapply(interactions_list, function(x) getParameters(x)$digest)
+
+  are_identical <- all(sapply(param[-1], function(x) identical(param[[1]], x)))
+
+  if (!are_identical)
+  {
+    stop("HiCaptuRe objects in the interactions_list have different digest genome")
+  }
+
+  original <- names(interactions_list)
+  new_order <- order(unlist(lapply(interactions_list, length)))
+
+  interactions_list <- interactions_list[new_order]
+
   la <- list()
   if (distance.boxplot)
   {
@@ -39,9 +56,8 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     {
       p(sprintf("Preparing"))
       a <- interactions_list[[i]]
-      a$dist <- GenomicInteractions::calculateDistances(a)
-      aa <- paste(interactions_list[[i]]@regions[interactions_list[[i]]@anchor1],interactions_list[[i]]@regions[interactions_list[[i]]@anchor2],sep = "_")
-      names(aa) <- a$dist
+      aa <- paste(interactions_list[[i]]$ID_1,interactions_list[[i]]$ID_2,sep = "_")
+      names(aa) <- a$distance
       la[[names(interactions_list)[i]]] <- aa
     }
 
@@ -64,8 +80,8 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     names(data) <- names(la)
 
     data_final <- suppressWarnings(cbind(data,as.numeric(names(elements))))
-    colnames(data_final)[ncol(data_final)] <- "dist"
-    data_final$log10dist <- log10(data_final$dist)
+    colnames(data_final)[ncol(data_final)] <- "distance"
+    data_final$log10dist <- log10(data_final$distance)
 
     p(sprintf("Upset"))
     uplot <- suppressWarnings(UpSetR::upset(data_final, nsets = length(interactions_list),boxplot.summary = "log10dist",...))
@@ -75,7 +91,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     for (i in 1:length(interactions_list))
     {
       p(sprintf("Preparing"))
-      aa <- paste(interactions_list[[i]]@regions[interactions_list[[i]]@anchor1],interactions_list[[i]]@regions[interactions_list[[i]]@anchor2],sep = "_")
+      aa <- paste(interactions_list[[i]]$ID_1,interactions_list[[i]]$ID_2,sep = "_")
       la[[names(interactions_list)[i]]] <- aa
     }
 
@@ -85,25 +101,81 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
 
   p(sprintf("Venn"))
   venn_plot <- gplots::venn(la,show.plot = F)
+
+  if (length(la) < 8)
+  {
+    ggvenn <- ggVennDiagram::ggVennDiagram(la,label_percent_digit = 2)
+  } else {
+    ggvenn <- NULL
+  }
+
   p(sprintf("Intersections"))
   int <- attr(venn_plot,"intersections")
 
   for (i in 1:length(int))
   {
-    p(sprintf("Intersections to GI"))
-    int_name <- str_split(names(int[i]),":")[[1]][1]
-    df <- dplyr::as_tibble(str_split_fixed(int[[i]],pattern = ":|-|_",n = 6))
-    a1 <- GenomicRanges::makeGRangesFromDataFrame(df[,1:3], seqnames.field = "V1",start.field = "V2",end.field = "V3")
-    a2 <- GenomicRanges::makeGRangesFromDataFrame(df[,4:6], seqnames.field = "V4",start.field = "V5",end.field = "V6")
-    gi <- GenomicInteractions::GenomicInteractions(a1,a2)
-    gi <- IRanges::subsetByOverlaps(interactions_list[[int_name]],gi)
+    p(sprintf("Intersections to HiCaptuRe"))
+    int_name <- stringr::str_split(names(int[i]),":")[[1]]
 
-    int[[i]] <- gi
+    for (j in 1:length(int_name))
+    {
+      sample <- int_name[j]
+
+      if (j == 1)
+      {
+        m <- match(int[[i]],paste(interactions_list[[sample]]$ID_1,interactions_list[[sample]]$ID_2,sep = "_"))
+        ints <- interactions_list[[sample]][m]
+
+        cols <- names(GenomicRanges::mcols(ints))
+        initial <- grep("CS.*",cols)[1]-1
+        final <- which(cols %in% c("counts","int","distance"))
+
+        CS <-  grep("CS.*",cols)
+        names(GenomicRanges::mcols(ints))[CS] <- paste(cols[CS],sample,sep = "_")
+
+        GenomicRanges::mcols(ints) <- GenomicRanges::mcols(ints)[,c(1:initial,CS,final)]
+
+      } else
+      {
+        m <- match(int[[i]],paste(interactions_list[[sample]]$ID_1,interactions_list[[sample]]$ID_2,sep = "_"))
+        ints2 <- interactions_list[[sample]][m]
+
+        CS <-  grep("CS.*",names(GenomicRanges::mcols(ints2)))
+        names(GenomicRanges::mcols(ints2))[CS] <- paste(names(GenomicRanges::mcols(ints2))[CS],sample,sep = "_")
+
+        count <- grep("counts",names(GenomicRanges::mcols(ints)))
+
+        S4Vectors::elementMetadata(ints) <- cbind(S4Vectors::elementMetadata(ints)[1:(count-1)],S4Vectors::elementMetadata(ints2)[CS],S4Vectors::elementMetadata(ints)[count:ncol(GenomicRanges::mcols(ints))])
+      }
+
+    }
+
+    if (length(int_name) > 1)
+    {
+
+      sub_original <- original[sort(match(int_name,original))]
+
+      cols <- names(GenomicRanges::mcols(ints))
+      initial <- grep("CS_",cols)[1]-1
+      count <- grep("counts",cols)
+
+      cs <- c()
+      for (sample in sub_original)
+      {
+        cs <- c(cs,grep(paste0("CS_.*",sample,"$"),cols))
+      }
+
+      S4Vectors::elementMetadata(ints) <- S4Vectors::elementMetadata(ints)[,c(1:initial,cs,count:length(cols))]
+
+      int_name <- paste(sub_original,collapse = ":")
+
+    }
+
+    int[[i]] <- ints
+    names(int)[i] <- int_name
   }
 
-
-  message("\nTo see the venn diagram: plot(variable$venn)")
-  return(list(intersections=int, upset_plot=uplot, venn = venn_plot))
+  return(list(intersections=int, upset=uplot, venn = ggvenn))
 
 
 }
