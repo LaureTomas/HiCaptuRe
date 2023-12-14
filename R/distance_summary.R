@@ -16,7 +16,6 @@
 #' @export
 distance_summary <- function(interactions, breaks=seq(0,10^6,10^5), sample="sample")
 {
-
   ## Setting pipe operator from magrittr package
   `%>%` <- magrittr::`%>%`
 
@@ -24,11 +23,6 @@ distance_summary <- function(interactions, breaks=seq(0,10^6,10^5), sample="samp
   breaks <- unique(c(0,breaks,Inf))
 
   interactions <- interactions[GenomicInteractions::is.cis(interactions)]
-  ## Compute distance
-
-  message("Computing Distance")
-
-  interactions$distance <- GenomicInteractions::calculateDistances(interactions, method="midpoint")
 
   if(is.null(interactions$int))
   {
@@ -47,9 +41,9 @@ distance_summary <- function(interactions, breaks=seq(0,10^6,10^5), sample="samp
 
   df <- rbind(total[,sort(colnames(total))],
               per_int_df[,sort(colnames(per_int_df))])
-  df$ibed <- length(interactions)
+  df$HiCaptuRe <- length(interactions)
 
-  df <- df[,c("int","total_per_int","sample","ibed","breaks","value")] %>% arrange(breaks)
+  df <- df[,c("int","total_per_int","sample","HiCaptuRe","breaks","value")] %>% arrange(breaks)
 
   return(df)
 }
