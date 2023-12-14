@@ -1,34 +1,40 @@
-#' Filters GenomicInteractions object by integrating regions
+#' Filters HiCaptuRe object by overlaping regions
 #'
-#' This function filters a GenomicInteractions object from load_interactions by integrating regions and classifies the interactions by type of interactions based on if the right, left or both end overlap with a region
+#' This function filters a HiCaptuRe object from load_interactions by overlaping regions
 #'
-#' @param interactions GenomicInteractions object from \code{\link{load_interactions}}
+#' @param interactions HiCaptuRe object
 #' @param regions full path to regions file (bed format) or a GRanges object
 #' @param chr column name of chromosome values
 #' @param start column name of start positions
 #' @param end column name of end positions
 #' @param invert T/F if need those interactions that do NOT overlaps with any regions
 #'
-#' @return GenomicInteractions object filtered by regions, by default with additional columns regarding overlap on each node. If invert=T no additional columns.
+#' @return HiCaptuRe object filtered by regions, by default with additional columns regarding overlap on each node. If invert=T no additional columns. And an additional slot ByRegions with region-centric statistics
 #'
 #' @importFrom magrittr `%>%`
 #' @importFrom GenomicInteractions anchorOne anchorTwo
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
-#' @importFrom IRanges subsetByOverlaps overlapsAny countOverlaps
+#' @importFrom IRanges subsetByOverlaps overlapsAny countOverlaps pintersect mergeByOverlaps
 #' @importFrom data.table fread
+#' @importFrom dplyr as_tibble group_by mutate summarise n rename
+#' @importFrom S4Vectors elementMetadata width
 #'
 #' @export
 interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=NULL, invert=F)
 {
+
   ## Setting pipe operator from magrittr package
   `%>%` <- magrittr::`%>%`
 
   if (inherits(regions,what = "GRanges"))
   {
+    regions_name <- deparse(substitute(regions))
     regionsGR <- regions
   }
   if (inherits(regions,what = "character"))
   {
+    regions_name <- regions
+
     ## Reading regions and transforming to Genomic Ranges
     if(!is.null(chr) & !is.null(start) & !is.null(end)) ## If the file has header
     {
@@ -48,12 +54,38 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
       stop("chr, start, end must be all filled if regions have header")
     }
   }
-  if (invert == T)
+  regionsGR$regionID <- 1:length(regionsGR)
+
+  if (invert)
   {
     interactions_regions <- unique(IRanges::subsetByOverlaps(interactions, regionsGR, invert = invert))
     message(paste("Integration with regions results in",length(interactions_regions),"interactions that do not overlap with any given region"))
-    annotate_POEuce(interactions_regions)
-  }
+
+    if (length(interactions_regions) != length(interactions))
+    {
+      anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorOne(interactions),regionsGR)))
+      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1$`anchorOne(interactions)`,anchor1$regionsGR)))
+      anchor1$B.id <- unlist(anchor1$B.id)
+
+      anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorTwo(interactions),regionsGR)))
+      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2$`anchorTwo(interactions)`,anchor2$regionsGR)))
+      anchor2$B.id <- unlist(anchor2$B.id)
+
+      df <- dplyr::as_tibble(rbind(anchor1[,c("regionID","fragmentID","B.id")],anchor2[,c("regionID","fragmentID","B.id")])) %>%
+        dplyr::group_by(regionID) %>%
+        dplyr::mutate(annot=ifelse(is.na(B.id),".",B.id)) %>%
+        dplyr::summarise(Nfragment=dplyr::n(),
+                         NOE=sum(annot=="."),
+                         fragmentID=paste(fragmentID,collapse = ","),
+                         fragmentAnnot=paste(unique(B.id),collapse = ","))
+
+      byregions <- makeGRangesFromDataFrame(merge(regionsGR,df,by="regionID",all=T),keep.extra.columns = T)
+    } else
+    {
+      byregions <- regionsGR
+      S4Vectors::elementMetadata(byregions) <- cbind(S4Vectors::elementMetadata(byregions),data.frame(Nfragment=NA,NOE=NA,fragmentID=NA,fragmentAnnot=NA))
+    } ## end if/else length == interactions
+  } ## end if invert T
   else
   {
     ## Subseting ibed by overlap with regions
@@ -62,27 +94,89 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
 
     if (length(interactions_regions) != 0)
     {
+      anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorOne(interactions),regionsGR)))
+      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1$`anchorOne(interactions)`,anchor1$regionsGR)))
+      anchor1$B.id <- unlist(anchor1$B.id)
 
-      ## Annotating and calculating overlaps in anchor one
-      interactions_regions$overlap_I <- IRanges::overlapsAny(anchorOne(interactions_regions), regionsGR)
-      interactions_regions$n_overlap_I <- IRanges::countOverlaps(anchorOne(interactions_regions), regionsGR)
+      df1 <- dplyr::as_tibble(anchor1[,c("fragmentID","regionID","intersect")]) %>%
+        dplyr::rename(ID_1=fragmentID) %>%
+        dplyr::group_by(ID_1) %>%
+        dplyr::summarise(region_1=T,
+                         Nregion_1=dplyr::n(),
+                         regionID_1=paste(regionID,collapse = ","),
+                         regionCov_1=sum(intersect))
 
-      ## Annotating and calculating overlaps in anchor two
-      interactions_regions$overlap_II <- IRanges::overlapsAny(anchorTwo(interactions_regions), regionsGR)
-      interactions_regions$n_overlap_II <- IRanges::countOverlaps(anchorTwo(interactions_regions), regionsGR)
+      m1 <- merge(S4Vectors::elementMetadata(interactions_regions),df1,all=T)
 
 
-      annotate_POEuce(interactions_regions)
-      ## Annotating type of interactions depending of overlap with regions
-      interactions_regions$int <- ifelse(interactions_regions$overlap_I & interactions_regions$overlap_II,
-                                         paste(GenomicInteractions::anchorOne(interactions_regions)$node.class,GenomicInteractions::anchorTwo(interactions_regions)$node.class,"II", sep = "_"),
-                                         ifelse(interactions_regions$overlap_I & !interactions_regions$overlap_II,
-                                                paste(GenomicInteractions::anchorOne(interactions_regions)$node.class,GenomicInteractions::anchorTwo(interactions_regions)$node.class,"I", sep = "_"),
-                                                ifelse(!interactions_regions$overlap_I & interactions_regions$overlap_II,
-                                                       paste(GenomicInteractions::anchorTwo(interactions_regions)$node.class,GenomicInteractions::anchorOne(interactions_regions)$node.class,"I", sep = "_"),NA)))
+      anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorTwo(interactions),regionsGR)))
+      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2$`anchorTwo(interactions)`,anchor2$regionsGR)))
+      anchor2$B.id <- unlist(anchor2$B.id)
 
-    }
+      df2 <- dplyr::as_tibble(anchor2[,c("fragmentID","regionID","intersect")]) %>%
+        dplyr::rename(ID_2=fragmentID) %>%
+        dplyr::group_by(ID_2) %>%
+        dplyr::summarise(region_2=T,
+                         Nregion_2=dplyr::n(),
+                         regionID_2=paste(regionID,collapse = ","),
+                         regionCov_2=sum(intersect))
+
+      m2 <- merge(S4Vectors::elementMetadata(interactions_regions),df2,all=T)
+
+      m <- merge(m1,m2, by=colnames(S4Vectors::elementMetadata(interactions_regions)))
+      m <- m[order(m$ID_1,m$ID_2),]
+      m$region_1[is.na(m$region_1)] <- F
+      m$region_2[is.na(m$region_2)] <- F
+      m$Nregion_1[is.na(m$Nregion_1)] <- 0
+      m$Nregion_2[is.na(m$Nregion_2)] <- 0
+      m$regionCov_1[is.na(m$regionCov_1)] <- 0
+      m$regionCov_2[is.na(m$regionCov_2)] <- 0
+
+
+      if (all(as.data.frame(m[,1:ncol(S4Vectors::elementMetadata(interactions_regions))]) == as.data.frame(S4Vectors::elementMetadata(interactions_regions)),na.rm = T))
+      {
+        S4Vectors::elementMetadata(interactions_regions) <- m
+      } else
+      {
+        stop("Data order is not correct. Maybe some bait was initially clasified as Other-End")
+      }
+
+      df <- dplyr::as_tibble(rbind(anchor1[,c("regionID","fragmentID","B.id")],anchor2[,c("regionID","fragmentID","B.id")])) %>%
+        dplyr::group_by(regionID) %>%
+        dplyr::mutate(annot=ifelse(is.na(B.id),".",B.id)) %>%
+        dplyr::summarise(Nfragment=dplyr::n(),
+                         NOE=sum(annot=="."),
+                         fragmentID=paste(fragmentID,collapse = ","),
+                         fragmentAnnot=paste(unique(B.id),collapse = ","))
+
+      byregions <- GenomicRanges::makeGRangesFromDataFrame(merge(regionsGR,df,by="regionID",all=T),keep.extra.columns = T)
+
+    } else
+    {
+      byregions <- regionsGR
+      S4Vectors::elementMetadata(byregions) <- cbind(S4Vectors::elementMetadata(byregions),data.frame(Nfragment=NA,NOE=NA,fragmentID=NA,fragmentAnnot=NA))
+    }  ## end if/else length == != 0
+  } ## end else invert F
+
+
+  #updating slots
+
+  ByRegions_list <- getByRegions(interactions_regions)
+
+  if (length(ByRegions_list) == 0)
+  {
+    ByRegions_list[[1]] <- byregions
+  } else
+  {
+    ByRegions_list[[length(ByRegions_list) + 1]] <- byregions
   }
-    return(interactions_regions)
+
+  interactions_regions <- setByRegions(interactions_regions,ByRegions_list)
+
+  param <- getParameters(interactions_regions)
+  param[[paste0("ByRegions_",length(ByRegions_list))]] <- c(interactions=deparse(substitute(interactions)),regions=regions_name,chr=chr,start=start,end=end, invert=invert)
+  interactions_regions <- setParameters(interactions_regions,param)
+
+  return(interactions_regions)
 
 }

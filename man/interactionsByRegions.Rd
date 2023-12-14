@@ -2,7 +2,7 @@
 % Please edit documentation in R/interactionsByRegions.R
 \name{interactionsByRegions}
 \alias{interactionsByRegions}
-\title{Filters GenomicInteractions object by integrating regions}
+\title{Filters HiCaptuRe object by overlaping regions}
 \usage{
 interactionsByRegions(
   interactions,
@@ -14,7 +14,7 @@ interactionsByRegions(
 )
 }
 \arguments{
-\item{interactions}{GenomicInteractions object from \code{\link{load_interactions}}}
+\item{interactions}{HiCaptuRe object}
 
 \item{regions}{full path to regions file (bed format) or a GRanges object}
 
@@ -27,8 +27,8 @@ interactionsByRegions(
 \item{invert}{T/F if need those interactions that do NOT overlaps with any regions}
 }
 \value{
-GenomicInteractions object filtered by regions, by default with additional columns regarding overlap on each node. If invert=T no additional columns.
+HiCaptuRe object filtered by regions, by default with additional columns regarding overlap on each node. If invert=T no additional columns. And an additional slot ByRegions with region-centric statistics
 }
 \description{
-This function filters a GenomicInteractions object from load_interactions by integrating regions and classifies the interactions by type of interactions based on if the right, left or both end overlap with a region
+This function filters a HiCaptuRe object from load_interactions by overlaping regions
 }
