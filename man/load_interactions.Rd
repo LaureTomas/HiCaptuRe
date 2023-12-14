@@ -4,13 +4,17 @@
 \alias{load_interactions}
 \title{Loads interaction file into GenomicInteractions Object}
 \usage{
-load_interactions(file)
+load_interactions(file, washU_seqname = "chr", ...)
 }
 \arguments{
 \item{file}{full path to the interaction file (seqmonk, ibed, washU)}
+
+\item{washU_seqname}{character to remove from seqnames column when using washU format}
+
+\item{...}{arguments to pass to \link[HiCaptuRe]{digest_genome}}
 }
 \value{
-GenomicInteractions object
+HiCaptuRe object
 }
 \description{
 This function loads interaction files from Chicago R package into a GenomicInteractions Object, and remove possible duplicated interactions
