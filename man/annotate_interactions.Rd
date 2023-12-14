@@ -9,12 +9,12 @@ annotate_interactions(interactions, annotation, ...)
 \arguments{
 \item{interactions}{GenomicInteractions object from \code{\link{load_interactions}}}
 
-\item{annotation}{full path to annotations file or a dataframe}
+\item{annotation}{full path to annotations file or a dataframe with 5 colums: chr, start, end, fragmentID, annotation}
 
 \item{...}{additional parameters for fread}
 }
 \value{
-GenomicInteractions object annotated
+HiCaptuRe object annotated, with columns bait_1 and bait_2 substituted based on the given annotation
 }
 \description{
 This function annotate a GenomicInteractions object from load_interactions, based on a given annotations file

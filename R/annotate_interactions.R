@@ -3,21 +3,24 @@
 #' This function annotate a GenomicInteractions object from load_interactions, based on a given annotations file
 #'
 #' @param interactions GenomicInteractions object from \code{\link{load_interactions}}
-#' @param annotation full path to annotations file or a dataframe
+#' @param annotation full path to annotations file or a dataframe with 5 colums: chr, start, end, fragmentID, annotation
 #' @param ... additional parameters for fread
 #'
-#' @return GenomicInteractions object annotated
+#' @return HiCaptuRe object annotated, with columns bait_1 and bait_2 substituted based on the given annotation
 #'
 #' @importFrom magrittr `%>%`
-#' @importFrom GenomicInteractions annotateInteractions anchorOne anchorTwo resetAnnotations
+#' @importFrom GenomicInteractions annotateInteractions anchorOne anchorTwo resetAnnotations annotateRegions
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split
 #' @importFrom data.table fread
+#' @importFrom S4Vectors elementMetadata
+#' @importFrom methods is
 #'
 #' @export
 annotate_interactions <- function(interactions, annotation,...)
 {
+  annotation_file <- annotation
 
-  if (is(annotation,"character"))
+  if (methods::is(annotation,"character"))
   {
     ## Reading annotation file
     annotation <- data.table::fread(annotation, stringsAsFactors = F,...)
@@ -27,12 +30,10 @@ annotate_interactions <- function(interactions, annotation,...)
     ## Checking if file has 5 columns
     if (ncol(annotation)!=5)
     {
-      stop("File has not 5 columns \nAnnotation must be chr start end fragID annotation")
+      stop("File has not 5 columns \nAnnotation must be chr start end fragmentID annotation")
     }
     else
     {
-      message("Remember: Annotation must be chr start end fragID annotation")
-
       ## Making a GRanges from the annotation and setting the NA as non-annotated
       cn <- colnames(annotation)
       annotation[[cn[5]]][is.na(annotation[[cn[5]]])] <- "non-annotated"
@@ -44,13 +45,34 @@ annotate_interactions <- function(interactions, annotation,...)
 
       suppressMessages(GenomicInteractions::annotateInteractions(interactions, annotation.features))
 
-      interactions@elementMetadata[,"gene_I"] <- unlist(GenomicInteractions::anchorOne(interactions)@elementMetadata[,"annot.id"])
-      interactions@elementMetadata[,"gene_II"] <- unlist(GenomicInteractions::anchorTwo(interactions)@elementMetadata[,"annot.id"])
+      interactions@elementMetadata[,"bait_1"] <- unlist(GenomicInteractions::anchorOne(interactions)@elementMetadata[,"annot.id"])
+      interactions@elementMetadata[,"bait_2"] <- unlist(GenomicInteractions::anchorTwo(interactions)@elementMetadata[,"annot.id"])
 
       ## When using a annotation file with only baits the OE get a NA so we have to change that
-      interactions@elementMetadata[is.na(interactions@elementMetadata[,"gene_II"]),"gene_II"] <- "."
+      interactions@elementMetadata[is.na(interactions@elementMetadata[,"bait_2"]),"bait_2"] <- "."
+      interactions@elementMetadata[is.na(interactions@elementMetadata[,"bait_1"]),"bait_1"] <- "."
 
-      interactions <- annotate_POEuce(interactions)
+      interactions <- annotate_BOE(interactions)
+
+      cond <- ((interactions$ID_1 > interactions$ID_2) & interactions$int == "B_B") | ((interactions$ID_1 < interactions$ID_2) & interactions$int == "OE_B")
+
+      a1 <- interactions@anchor1[cond]
+      a2 <- interactions@anchor2[cond]
+
+      interactions@anchor1[cond] <- a2
+      interactions@anchor2[cond] <- a1
+
+
+      cols <- sort(grep("_",colnames(S4Vectors::elementMetadata(interactions[cond]))[1:7],value = T))
+      S4Vectors::elementMetadata(interactions[cond])[cols] <- S4Vectors::elementMetadata(interactions[cond])[cols[c(rbind(seq(2,length(cols),2),seq(1,length(cols),2)))]]
+
+      interactions <- annotate_BOE(interactions)
+
+      param <- getParameters(interactions)
+      param$annotate <- c(annotation_file=normalizePath(annotation_file))
+      interactions <- setParameters(interactions,param)
+      interactions <- interactions[order(interactions$ID_1,interactions$ID_2)]
+
 
       return(interactions)
     }
@@ -62,29 +84,28 @@ annotate_interactions <- function(interactions, annotation,...)
 }
 
 
-annotate_POEuce <- function(interactions)
+annotate_BOE <- function(interactions)
 {
   a1 <- GenomicInteractions::anchorOne(interactions)
-  a1$gene_I <- interactions@elementMetadata[,"gene_I"]
+  a1$bait_1 <- interactions@elementMetadata[,"bait_1"]
   a2 <- GenomicInteractions::anchorTwo(interactions)
-  a2$gene_I <- interactions@elementMetadata[,"gene_II"]
+  a2$bait_1 <- interactions@elementMetadata[,"bait_2"]
 
-  a2$gene_I[is.na(a2$gene_I)] <- "."
+  a2$bait_1[is.na(a2$bait_1)] <- "."
 
   regions <- unique(c(a1,a2))
 
-  regions$gene_I[is.na(regions$gene_I)] <- "non-annotated"
-  prom <- regions[(regions$gene_I != ".") & (regions$gene_I != "uce")]
-  oe <- regions[regions$gene_I == "."]
-  uce <- regions[regions$gene_I == "uce"]
+  regions$bait_1[is.na(regions$bait_1)] <- "non-annotated"
+  bait <- regions[(regions$bait_1 != ".")]
+  oe <- regions[regions$bait_1 == "."]
 
-  proml <- GenomicRanges::split(prom[, -1], as.factor(prom$gene_I))
-  oel <- GenomicRanges::split(oe[, -1], as.factor(oe$gene_I))
-  ucel <- GenomicRanges::split(uce[, -1], as.factor(uce$gene_I))
+  baitl <- GenomicRanges::split(bait[, -1], as.factor(bait$bait_1))
+  oel <- GenomicRanges::split(oe[, -1], as.factor(oe$bait_1))
 
-  annotation.features = list(P = proml, OE = oel, uce = ucel)
+  annotation.features = list(B = baitl, OE = oel)
   GenomicInteractions::resetAnnotations(interactions)
   suppressMessages(GenomicInteractions::annotateInteractions(interactions, annotation.features))
+  GenomicInteractions::annotateRegions(interactions,"fragmentID",unique(sort(c(interactions$ID_1,interactions$ID_2))))
   interactions$int <- paste(GenomicInteractions::anchorOne(interactions)$node.class,GenomicInteractions::anchorTwo(interactions)$node.class, sep = "_")
 
   return(interactions)
