@@ -9,7 +9,7 @@ output:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{vignette}
+  %\VignetteIndexEntry{Functions}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -130,9 +130,8 @@ There are some interesting arguments:
     the recognition motif of the enzyme and the cut position of the
     enzyme inside that motif.
 
-```{=html}
 <!-- -->
-```
+
 -   `select_chr`. In most genome there are more chromosomes than the
     commonly known (1:22, X, Y), so here we can specify which
     chromosomes we want to digest
