@@ -36,6 +36,7 @@ Imports:
     utils
 RoxygenNote: 7.2.3
 Suggests: 
+    BSgenome.Hsapiens.NCBI.GRCh38,
     knitr,
     rmarkdown,
     DT
