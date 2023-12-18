@@ -1,4 +1,4 @@
-News!
+# News!
 
 New class HiCaptuRe
 New function load_genome and digest_genome
@@ -9,14 +9,14 @@ Renamed P (promoter) by B (bait)
 Include PAR file for Homo Sapiens GRCh38
 
 
-Class HiCapture
+## Class HiCapture
 - Inherits methods from GenomicInteractions
 - New slots
   - parameters: include parameters used in different functions applied to the object
   - ByBait: list containing bait centric statistics
   - ByRegion: list containing region centric statistics
 
-load_interactions
+## load_interactions
 - Accepts bedpe files
 - Returns HiCaptuRe object
 - seqinfo updated based on digest genome
@@ -28,24 +28,24 @@ load_interactions
   - ID1 and ID2: identifier of restriction fragment based on digest genome
   - distance
 
-annotate_interactions
+## annotate_interactions
 - Remove UCE annotation
 - Reannote the column int based on the new annotation of fragments
 - Internal function annotate_POEuce renamed to annotate_BOE
 - Reorder interactions based on ID, in case some fragments are now annotated as baits
 
-export_interactions
+## export_interactions
 - Export parameters file
 - When exporting HiCaptuRe object with more than 1 CS column it will generate several files
 
-distance_summary
+## distance_summary
 - Column ibed renamed to HiCaptuRe
 
-interactionsByBaits
+## interactionsByBaits
 - New argument sep to indicate separator in bait names
 - New slot ByBaits containing Bait centric information
 
-interactionsByRegions
+## interactionsByRegions
 - Removed nomenclature _II or _I... to indicate the presence of an overlaping region in any end
 - Add several new columns regarding overlaping peaks:
   - region: T/F overlaping region
