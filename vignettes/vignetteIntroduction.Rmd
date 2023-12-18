@@ -57,7 +57,7 @@ Basically the idea behind any Capture Hi-C technique is to enrich the Hi-C libra
 
 There are several softwares that can be used to perform the preprocessing of this type of data and to call significant interactions. The workflow that we follow is represented below:
 
-![**Schematic Workflow of CHI-C**](/home/ltomas/MEGA/HiCaptuRe/workflow.png)
+![**Schematic Workflow of CHI-C**](workflow.png)
 
 Once the libraries are sequenced we analyse the FASTQ files with HICUP, which aligns our data to the reference genome and removes several artefacts of the technique. Once we get our filtered BAM file from HICUP, we calculate the capture efficiency of the protocol and we only select those paired reads that are captured at least at one end. Finally, we run the Chicago pipeline, which performs the interactions calling based on the distributions of reads around our baits.
 
