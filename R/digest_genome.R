@@ -76,14 +76,17 @@ digest_genome <- function(genome="GRCh38",RE_name="hindIII",motif="AAGCTT",cut_p
   for (chr in chrs)
   {
     p(sprintf(paste("Digesting",chr)))
-
-    if (grepl(unique(PAR$seqnames),chr) & PAR_mask)
+    if (PAR_mask)
     {
-      chr_seq <- Biostrings::replaceAt(genome[[chr]], IRanges::IRanges(PAR$start[1], PAR$end[1]),
-                                       Biostrings::DNAStringSet(strrep("N",length(PAR$start[1]:PAR$end[1]))))
-      chr_seq <- Biostrings::replaceAt(chr_seq, IRanges::IRanges(PAR$start[2], PAR$end[2]),
-                                       Biostrings::DNAStringSet(strrep("N",length(PAR$start[2]:PAR$end[2]))))
-    }else
+      if (grepl(unique(PAR$seqnames),chr))
+      {
+        chr_seq <- Biostrings::replaceAt(genome[[chr]], IRanges::IRanges(PAR$start[1], PAR$end[1]),
+                                         Biostrings::DNAStringSet(strrep("N",length(PAR$start[1]:PAR$end[1]))))
+        chr_seq <- Biostrings::replaceAt(chr_seq, IRanges::IRanges(PAR$start[2], PAR$end[2]),
+                                         Biostrings::DNAStringSet(strrep("N",length(PAR$start[2]:PAR$end[2]))))
+      }
+    }
+    else
     {
       chr_seq <- genome[[chr]]
     }
