@@ -53,40 +53,32 @@ export_interactions <- function(interactions, file, format = "ibed", over.write=
   {
     message("Interactions is a peakmatrix. Exporting in individual files")
 
-    m <- GenomicRanges::mcols(interactions)
-    initial <- grep("CS_",names(m))[1]-1
-    CS <- grep("CS_",names(m))
-    final <- which(names(m) %in% c("counts","int","distance"))
-    for (i in CS)
-    {
-      sub_int <- interactions[m[,i] >= cutoff, c(1:initial,i,final)]
-      names(GenomicRanges::mcols(sub_int))[initial+1] <- "CS"
-      sub_file <- gsub("\\.",paste0("_",gsub("CS_","",names(m)[i]),"."),file)
+    int_list <- peakmatrix2list(peakmatrix = interactions,cutoff = cutoff)
+    files <- paste0("~/Downloads/prueba_ibed_",names(int_list),".ibed")
 
-      if (format == "ibed")
-      {
-        export_ibed(sub_int,sub_file)
-      }
-      if (format == "washU")
-      {
-        export_washU(sub_int,sub_file,washU_seqname)
-      }
-      if (format == "washUold")
-      {
-        export_washUold(sub_int,sub_file,washU_seqname)
-      }
-      if (format == "cytoscape")
-      {
-        export_citoscape(sub_int,sub_file)
-      }
-      if (format == "bedpe")
-      {
-        export_bedpe(sub_int,sub_file)
-      }
-      if (format == "seqmonk")
-      {
-        export_seqmonk(sub_int,sub_file)
-      }
+    if (format == "ibed")
+    {
+      invisible(mapply(HiCaptuRe:::export_ibed,int_list,files))
+    }
+    if (format == "washU")
+    {
+      invisible(mapply(HiCaptuRe:::export_washU,int_list,files,washU_seqname))
+    }
+    if (format == "washUold")
+    {
+      invisible(mapply(HiCaptuRe:::export_washUold,int_list,files,washU_seqname))
+    }
+    if (format == "cytoscape")
+    {
+      invisible(mapply(HiCaptuRe:::export_citoscape,int_list,files))
+    }
+    if (format == "bedpe")
+    {
+      invisible(mapply(HiCaptuRe:::export_bedpe,int_list,files))
+    }
+    if (format == "seqmonk")
+    {
+      invisible(mapply(HiCaptuRe:::export_seqmonk,int_list,files))
     }
 
   }else
@@ -151,13 +143,13 @@ export_ibed <- function(ints,file)
   data.table::fwrite(int_df,file = file, col.names = T, row.names = F, quote = F, sep = "\t")
 }
 
-export_washU <- function(ints,file,washU_seqname)
+export_washU <- function(ints,file,washU_seqname = "chr")
 {
 
   int_df <- dplyr::as_tibble(ints)
   int_df <- dplyr::arrange(int_df, seqnames1, start1, end1, seqnames2, start2, end2)
-  washU <- data.frame(paste(paste("chr",int_df$seqnames1,sep = ""),int_df$start1,int_df$end1,sep = "\t"),
-                      paste(paste("chr",int_df$seqnames2,sep = ""),":",int_df$start2,"-",int_df$end2,",",int_df$CS, sep = ""))
+  washU <- data.frame(paste(paste(washU_seqname,int_df$seqnames1,sep = ""),int_df$start1,int_df$end1,sep = "\t"),
+                      paste(paste(washU_seqname,int_df$seqnames2,sep = ""),":",int_df$start2,"-",int_df$end2,",",int_df$CS, sep = ""))
   colnames(washU) <- c("regionI","regionIICS")
   data.table::fwrite(washU, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 
@@ -166,11 +158,11 @@ export_washU <- function(ints,file,washU_seqname)
   message("Click on Tracks > Local Text Tracks > Choose long-range text > Load washU file")
 }
 
-export_washUold <- function(ints,file,washU_seqname)
+export_washUold <- function(ints,file,washU_seqname = "chr")
 {
   int_df <- as.data.frame(ints)
-  washU <- data.frame(paste(paste("chr",int_df$seqnames1,sep = ""),":",int_df$start1,",",int_df$end1,sep = ""),
-                      paste(paste("chr",int_df$seqnames2,sep = ""),":",int_df$start2,",",int_df$end2, sep = ""),
+  washU <- data.frame(paste(paste(washU_seqname,int_df$seqnames1,sep = ""),":",int_df$start1,",",int_df$end1,sep = ""),
+                      paste(paste(washU_seqname,int_df$seqnames2,sep = ""),":",int_df$start2,",",int_df$end2, sep = ""),
                       int_df$CS)
   colnames(washU) <- c("regionI","regionII","CS")
   data.table::fwrite(washU, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
