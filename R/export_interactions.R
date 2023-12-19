@@ -58,27 +58,27 @@ export_interactions <- function(interactions, file, format = "ibed", over.write=
 
     if (format == "ibed")
     {
-      invisible(mapply(HiCaptuRe:::export_ibed,int_list,files))
+      invisible(mapply(export_ibed,int_list,files))
     }
     if (format == "washU")
     {
-      invisible(mapply(HiCaptuRe:::export_washU,int_list,files,washU_seqname))
+      invisible(mapply(export_washU,int_list,files,washU_seqname))
     }
     if (format == "washUold")
     {
-      invisible(mapply(HiCaptuRe:::export_washUold,int_list,files,washU_seqname))
+      invisible(mapply(export_washUold,int_list,files,washU_seqname))
     }
     if (format == "cytoscape")
     {
-      invisible(mapply(HiCaptuRe:::export_citoscape,int_list,files))
+      invisible(mapply(export_citoscape,int_list,files))
     }
     if (format == "bedpe")
     {
-      invisible(mapply(HiCaptuRe:::export_bedpe,int_list,files))
+      invisible(mapply(export_bedpe,int_list,files))
     }
     if (format == "seqmonk")
     {
-      invisible(mapply(HiCaptuRe:::export_seqmonk,int_list,files))
+      invisible(mapply(export_seqmonk,int_list,files))
     }
 
   }else

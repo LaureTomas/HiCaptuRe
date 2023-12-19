@@ -3,7 +3,7 @@
 #' This function creates a list of HiCaptuRe objects separating all the samples included on a peakmatrix.
 #'
 #' @param peakmatrix HiCaptuRe object of a peakmatrix
-#' @param cutoff Chicago score cutoff to export interactions
+#' @param cutoff Chicago score cutoff to filter interactions
 #'
 #' @return list with HiCaptuRe objects
 #'
@@ -12,7 +12,7 @@
 #' @export
 peakmatrix2list <- function(peakmatrix,cutoff = 5)
 {
-  type <- interactions@parameters$load["type"]
+  type <- peakmatrix@parameters$load["type"]
   if (type != "peakmatrix")
   {
     stop("Input is not a peakmatrix")
