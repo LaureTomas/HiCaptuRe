@@ -85,6 +85,7 @@ digest_genome <- function(genome="GRCh38",RE_name="hindIII",motif="AAGCTT",cut_p
         chr_seq <- Biostrings::replaceAt(chr_seq, IRanges::IRanges(PAR$start[2], PAR$end[2]),
                                          Biostrings::DNAStringSet(strrep("N",length(PAR$start[2]:PAR$end[2]))))
       }
+      chr_seq <- genome[[chr]]
     }
     else
     {
