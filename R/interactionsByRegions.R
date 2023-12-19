@@ -63,15 +63,15 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
 
     if (length(interactions_regions) != length(interactions))
     {
-      anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorOne(interactions),regionsGR)))
+      anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorOne(interactions),regionsGR)))
       anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1$`anchorOne(interactions)`,anchor1$regionsGR)))
       anchor1$B.id <- unlist(anchor1$B.id)
 
-      anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorTwo(interactions),regionsGR)))
+      anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorTwo(interactions),regionsGR)))
       anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2$`anchorTwo(interactions)`,anchor2$regionsGR)))
       anchor2$B.id <- unlist(anchor2$B.id)
 
-      df <- dplyr::as_tibble(rbind(anchor1[,c("regionID","fragmentID","B.id")],anchor2[,c("regionID","fragmentID","B.id")])) %>%
+      df <- dplyr::as_tibble(unique(rbind(anchor1[,c("regionID","fragmentID","B.id")],anchor2[,c("regionID","fragmentID","B.id")]))) %>%
         dplyr::group_by(regionID) %>%
         dplyr::mutate(annot=ifelse(is.na(B.id),".",B.id)) %>%
         dplyr::summarise(Nfragment=dplyr::n(),
@@ -94,8 +94,8 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
 
     if (length(interactions_regions) != 0)
     {
-      anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorOne(interactions),regionsGR)))
-      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1$`anchorOne(interactions)`,anchor1$regionsGR)))
+      anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorOne(interactions),regionsGR)))
+      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1[,1],anchor1$regionsGR)))
       anchor1$B.id <- unlist(anchor1$B.id)
 
       df1 <- dplyr::as_tibble(anchor1[,c("fragmentID","regionID","intersect")]) %>%
@@ -109,8 +109,8 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
       m1 <- merge(S4Vectors::elementMetadata(interactions_regions),df1,all=T)
 
 
-      anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(anchorTwo(interactions),regionsGR)))
-      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2$`anchorTwo(interactions)`,anchor2$regionsGR)))
+      anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorTwo(interactions),regionsGR)))
+      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2[,1],anchor2$regionsGR)))
       anchor2$B.id <- unlist(anchor2$B.id)
 
       df2 <- dplyr::as_tibble(anchor2[,c("fragmentID","regionID","intersect")]) %>%
@@ -141,7 +141,7 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
         stop("Data order is not correct. Maybe some bait was initially clasified as Other-End")
       }
 
-      df <- dplyr::as_tibble(rbind(anchor1[,c("regionID","fragmentID","B.id")],anchor2[,c("regionID","fragmentID","B.id")])) %>%
+      df <- dplyr::as_tibble(unique(rbind(anchor1[,c("regionID","fragmentID","B.id")],anchor2[,c("regionID","fragmentID","B.id")]))) %>%
         dplyr::group_by(regionID) %>%
         dplyr::mutate(annot=ifelse(is.na(B.id),".",B.id)) %>%
         dplyr::summarise(Nfragment=dplyr::n(),
