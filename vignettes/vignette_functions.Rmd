@@ -189,7 +189,7 @@ This function subset the interactions by any given bait or list of
 baits, meaning, it returns the interactions which any anchor of the
 interaction contains a bait of interest.
 
-Since out data is focused on promoters, we might be interested in
+Since our data is focused on promoters, we might be interested in
 subsetting our data to only select those interactions that involved a
 set of promoters of interest. These promoters of interest could came
 from an RNA-seq analysis, or any other type of analysis.
