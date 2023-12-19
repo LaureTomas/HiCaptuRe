@@ -1,4 +1,5 @@
-# News!
+CHANGES IN VERSION 0.10.0
+-------------------------
 
 New class HiCaptuRe
 New function load_genome and digest_genome
