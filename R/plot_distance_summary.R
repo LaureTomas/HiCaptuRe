@@ -15,7 +15,7 @@
 #' @export
 plot_distance_summary <- function(distances, type_of_value="absolute")
 {
-
+    type_of_value <- match.arg(type_of_value, choices = c("absolute", "by_int_type", "by_total"),several.ok = F)
     if (type_of_value == "absolute")
     {
       plots <- list()

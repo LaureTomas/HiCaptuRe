@@ -20,6 +20,7 @@
 #' @export
 export_interactions <- function(interactions, file, format = "ibed", over.write=F,washU_seqname="chr",cutoff=5)
 {
+  format <- match.arg(arg = format,choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe"),several.ok = F)
   if (file.exists(file) & !over.write)
   {
     user_input <- readline(paste(basename(file),"already exists. Do you want to overwrite it? (y/n)   "))
