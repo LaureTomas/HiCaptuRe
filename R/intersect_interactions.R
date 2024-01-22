@@ -84,7 +84,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     data_final$log10dist <- log10(data_final$distance)
 
     p(sprintf("Upset"))
-    uplot <- suppressWarnings(UpSetR::upset(data_final, nsets = length(interactions_list),boxplot.summary = "log10dist",...))
+    uplot <- suppressWarnings(UpSetR::upset(data_final, nsets = length(interactions_list),boxplot.summary = "log10dist",mainbar.y.label = "# Interactions",sets.x.label = "# Interactions", ...))
   }
   else
   {
@@ -96,7 +96,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     }
 
     p(sprintf("Upset"))
-    uplot <- suppressWarnings(UpSetR::upset(UpSetR::fromList(la), nsets = length(interactions_list),...))
+    uplot <- suppressWarnings(UpSetR::upset(UpSetR::fromList(la), nsets = length(interactions_list),mainbar.y.label = "# Interactions",sets.x.label = "# Interactions",...))
   }
 
   p(sprintf("Venn"))
