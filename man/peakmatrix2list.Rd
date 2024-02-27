@@ -9,7 +9,7 @@ peakmatrix2list(peakmatrix, cutoff = 5)
 \arguments{
 \item{peakmatrix}{HiCaptuRe object of a peakmatrix}
 
-\item{cutoff}{Chicago score cutoff to export interactions}
+\item{cutoff}{Chicago score cutoff to filter interactions}
 }
 \value{
 list with HiCaptuRe objects
