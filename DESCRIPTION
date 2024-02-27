@@ -34,7 +34,7 @@ Imports:
     tidyr,
     UpSetR,
     utils
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 Suggests: 
     BSgenome.Hsapiens.NCBI.GRCh38,
     knitr,
