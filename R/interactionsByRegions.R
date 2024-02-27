@@ -11,7 +11,6 @@
 #'
 #' @return HiCaptuRe object filtered by regions, by default with additional columns regarding overlap on each node. If invert=T no additional columns. And an additional slot ByRegions with region-centric statistics
 #'
-#' @importFrom magrittr `%>%`
 #' @importFrom GenomicInteractions anchorOne anchorTwo
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom IRanges subsetByOverlaps overlapsAny countOverlaps pintersect mergeByOverlaps

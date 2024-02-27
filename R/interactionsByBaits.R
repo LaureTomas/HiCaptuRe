@@ -8,7 +8,6 @@
 #'
 #' @return HiCaptuRe object, subset of the original based on the given baits. And an additional slot ByBatis with bait-centric statistics
 #'
-#' @importFrom magrittr `%>%`
 #' @importFrom stringr str_split
 #' @importFrom dplyr as_tibble group_by summarise filter select rename arrange tibble
 #' @importFrom tidyr separate_rows

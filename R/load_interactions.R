@@ -8,7 +8,6 @@
 #'
 #' @return HiCaptuRe object
 #'
-#' @importFrom magrittr `%>%`
 #' @importFrom tidyr separate
 #' @importFrom dplyr as_tibble slice n
 #' @importFrom stringr str_replace_all

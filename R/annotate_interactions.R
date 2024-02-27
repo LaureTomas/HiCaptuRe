@@ -8,7 +8,6 @@
 #'
 #' @return HiCaptuRe object annotated, with columns bait_1 and bait_2 substituted based on the given annotation
 #'
-#' @importFrom magrittr `%>%`
 #' @importFrom GenomicInteractions annotateInteractions anchorOne anchorTwo resetAnnotations annotateRegions
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split
 #' @importFrom data.table fread
