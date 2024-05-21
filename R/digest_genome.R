@@ -104,6 +104,14 @@ digest_genome <- function(genome="GRCh38",RE_name="hindIII",motif="AAGCTT",cut_p
     digest <- rbind(digest,df)
   }
 
+  if (is.null(PAR_file))
+  {
+    PAR_file <- "NULL"
+  } else
+  {
+    PAR_file <- normalizePath(PAR_file)
+  }
+
   digest$fragment_ID <- 1:nrow(digest)
   output <- list(digest=digest,
                  parameters=c("Genome"=genome_name,
@@ -113,7 +121,7 @@ digest_genome <- function(genome="GRCh38",RE_name="hindIII",motif="AAGCTT",cut_p
                               "Cut_Position"=cut_position,
                               "Selected_Chromosomes"=paste(select_chr,collapse = ","),
                               "PAR_mask"=PAR_mask,
-                              "PAR_file"=normalizePath(PAR_file)),
+                              "PAR_file"=PAR_file),
                  seqinfo=seqinfo(genome)[chrs])
   return(output)
 }
