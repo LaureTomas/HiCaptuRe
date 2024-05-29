@@ -169,10 +169,10 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
                          fragmentID=paste(fragmentID,collapse = ","),
                          fragmentAnnot=paste(unique(B.id),collapse = ","))
 
-      m1 <- dplyr::as_tibble(m[,c("regionID_1","ID_1","ID_2")]) %>% dplyr::mutate(ID=paste(ID_1,ID_2,sep = "_"))
-      %>% dplyr::rename(regionID=regionID_1)
-      m2 <- dplyr::as_tibble(m[,c("regionID_2","ID_1","ID_2")]) %>% dplyr::mutate(ID=paste(ID_1,ID_2,sep = "_"))
-      %>% dplyr::rename(regionID=regionID_2)
+      m1 <- dplyr::as_tibble(m[,c("regionID_1","ID_1","ID_2")]) %>% dplyr::mutate(ID=paste(ID_1,ID_2,sep = "_")) %>%
+        dplyr::rename(regionID=regionID_1)
+      m2 <- dplyr::as_tibble(m[,c("regionID_2","ID_1","ID_2")]) %>% dplyr::mutate(ID=paste(ID_1,ID_2,sep = "_")) %>%
+        dplyr::rename(regionID=regionID_2)
       mfinal <- rbind(m1[,c(1,4)],m2[,c(1,4)]) %>% dplyr::filter(!is.na(regionID)) %>% tidyr::separate_rows(regionID,sep=",") %>%
         dplyr::mutate(regionID=as.numeric(regionID)) %>% dplyr::group_by(regionID) %>% dplyr::summarise(N_int=length(unique(ID)))
 
