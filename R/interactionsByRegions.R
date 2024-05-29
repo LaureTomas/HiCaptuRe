@@ -15,7 +15,8 @@
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom IRanges subsetByOverlaps overlapsAny countOverlaps pintersect mergeByOverlaps
 #' @importFrom data.table fread
-#' @importFrom dplyr as_tibble group_by mutate summarise n rename
+#' @importFrom dplyr as_tibble group_by mutate summarise n rename filter
+#' @importFrom tidyr separate_rows
 #' @importFrom S4Vectors elementMetadata width
 #'
 #' @export
@@ -63,13 +64,23 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
     if (length(interactions_regions) != length(interactions))
     {
       anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorOne(interactions),regionsGR)))
-      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1$`anchorOne(interactions)`,anchor1$regionsGR)))
-      anchor1$B.id <- unlist(anchor1$B.id)
-
+      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1[,1],anchor1$regionsGR)))
+      if (nrow(anchor1) == 0)
+      {
+        anchor1$B.id <- c()
+      } else
+      {
+        anchor1$B.id <- unlist(anchor1$B.id)
+      }
       anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorTwo(interactions),regionsGR)))
-      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2$`anchorTwo(interactions)`,anchor2$regionsGR)))
-      anchor2$B.id <- unlist(anchor2$B.id)
-
+      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2[,1],anchor2$regionsGR)))
+      if (nrow(anchor2) == 0)
+      {
+        anchor2$B.id <- c()
+      } else
+      {
+        anchor2$B.id <- unlist(anchor2$B.id)
+      }
       df <- dplyr::as_tibble(unique(rbind(anchor1[,c("regionID","fragmentID","B.id")],anchor2[,c("regionID","fragmentID","B.id")]))) %>%
         dplyr::group_by(regionID) %>%
         dplyr::mutate(annot=ifelse(is.na(B.id),".",B.id)) %>%
@@ -95,8 +106,13 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
     {
       anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorOne(interactions),regionsGR)))
       anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1[,1],anchor1$regionsGR)))
-      anchor1$B.id <- unlist(anchor1$B.id)
-
+      if (nrow(anchor1) == 0)
+      {
+        anchor1$B.id <- c()
+      } else
+      {
+        anchor1$B.id <- unlist(anchor1$B.id)
+      }
       df1 <- dplyr::as_tibble(anchor1[,c("fragmentID","regionID","intersect")]) %>%
         dplyr::rename(ID_1=fragmentID) %>%
         dplyr::group_by(ID_1) %>%
@@ -110,8 +126,13 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
 
       anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorTwo(interactions),regionsGR)))
       anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2[,1],anchor2$regionsGR)))
-      anchor2$B.id <- unlist(anchor2$B.id)
-
+      if (nrow(anchor2) == 0)
+      {
+        anchor2$B.id <- c()
+      } else
+      {
+        anchor2$B.id <- unlist(anchor2$B.id)
+      }
       df2 <- dplyr::as_tibble(anchor2[,c("fragmentID","regionID","intersect")]) %>%
         dplyr::rename(ID_2=fragmentID) %>%
         dplyr::group_by(ID_2) %>%
@@ -147,6 +168,15 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
                          NOE=sum(annot=="."),
                          fragmentID=paste(fragmentID,collapse = ","),
                          fragmentAnnot=paste(unique(B.id),collapse = ","))
+
+      m1 <- dplyr::as_tibble(m[,c("regionID_1","ID_1","ID_2")]) %>% dplyr::mutate(ID=paste(ID_1,ID_2,sep = "_"))
+      %>% dplyr::rename(regionID=regionID_1)
+      m2 <- dplyr::as_tibble(m[,c("regionID_2","ID_1","ID_2")]) %>% dplyr::mutate(ID=paste(ID_1,ID_2,sep = "_"))
+      %>% dplyr::rename(regionID=regionID_2)
+      mfinal <- rbind(m1[,c(1,4)],m2[,c(1,4)]) %>% dplyr::filter(!is.na(regionID)) %>% tidyr::separate_rows(regionID,sep=",") %>%
+        dplyr::mutate(regionID=as.numeric(regionID)) %>% dplyr::group_by(regionID) %>% dplyr::summarise(N_int=length(unique(ID)))
+
+      df <- merge(mfinal,df, by="regionID")
 
       byregions <- GenomicRanges::makeGRangesFromDataFrame(merge(regionsGR,df,by="regionID",all=T),keep.extra.columns = T)
 
