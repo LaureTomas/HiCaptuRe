@@ -26,7 +26,7 @@ interactionsByBaits <- function(interactions, baits, sep=",")
   {
     message("There is no interaction including the given bait(s)")
     message("Could Interactions not be annotated with the same bait nomenclature?")
-    baits_final <- tibble(ID=NA,bait=baits,N_int=NA,NOE=NA,interactingID=NA,interactingAnnotation=NA)
+    baits_final <- tibble(ID=NA,bait=baits,N_int=NA,NOE=NA,interactingID=NA,interactingAnnotation=NA,interactingDistance=NA)
   }
   else
   {
@@ -35,11 +35,11 @@ interactionsByBaits <- function(interactions, baits, sep=",")
 
     baits1 <- baits_df %>%
       dplyr::filter(bait_1 %in% baits) %>%
-      dplyr::select(ID_1,ID_2,bait_1,bait_2)
+      dplyr::select(ID_1,ID_2,bait_1,bait_2,distance)
 
     baits2 <- baits_df %>%
       dplyr::filter(bait_2 %in% baits) %>%
-      dplyr::select(ID_2,ID_1,bait_2,bait_1)
+      dplyr::select(ID_2,ID_1,bait_2,bait_1,distance)
 
     colnames(baits2) <- colnames(baits1)
 
@@ -48,13 +48,14 @@ interactionsByBaits <- function(interactions, baits, sep=",")
                                                  N_int=length(unique(ID_2)),
                                                  NOE=sum(bait_2 == "."),
                                                  interactingID=paste(sort(unique(ID_2)),collapse = ","),
-                                                 interactingAnnotation=paste(sort(unique(bait_2)),collapse = ",")) %>%
+                                                 interactingAnnotation=paste(sort(unique(bait_2)),collapse = ","),
+                                                 interactingDistance=paste(sort(unique(distance)),collapse = ",")) %>%
       dplyr::rename("ID" = "ID_1")
 
     if (any(!baits %in% baits_final$bait))
     {
       missing_baits <- baits[!baits %in% baits_final$bait]
-      missing <- data.frame(ID=NA,bait=missing_baits,N_int=0,NOE=0,interactingID=NA,interactingAnnotation=NA)
+      missing <- data.frame(ID=NA,bait=missing_baits,N_int=0,NOE=0,interactingID=NA,interactingAnnotation=NA,interactingDistance=NA)
       baits_final <- dplyr::as_tibble(rbind(baits_final,missing)) %>% dplyr::arrange(ID)
 
       message(paste("Some baits do not have interactions:",paste(missing_baits,collapse = ",")))
