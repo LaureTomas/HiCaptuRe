@@ -8,7 +8,8 @@
 #' @param over.write T/F to over write the output file
 #' @param washU_seqname string to add to the seqnames to export to washU format
 #' @param cutoff Chicago score cutoff to export interactions
-#'
+#' @param parameters T/F to also export the parameters of the given object
+
 #' @return tibble object with the ibed table and save it in the desired output file
 #'
 #' @importFrom GenomicInteractions export.igraph
@@ -18,7 +19,7 @@
 #' @importFrom stats setNames
 #'
 #' @export
-export_interactions <- function(interactions, file, format = "ibed", over.write=F,washU_seqname="chr",cutoff=5)
+export_interactions <- function(interactions, file, format = "ibed", over.write=F,washU_seqname="chr",cutoff=5,parameters=F)
 {
   format <- match.arg(arg = format,choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe"),several.ok = F)
   if (file.exists(file) & !over.write)
@@ -29,8 +30,10 @@ export_interactions <- function(interactions, file, format = "ibed", over.write=
       stop()
     }
   }
-
-  export_parameters(interactions,file)
+  if (parameters)
+  {
+    export_parameters(interactions,file)
+  }
   type <- interactions@parameters$load["type"]
 
   if (format == "peakmatrix" &  type == "peakmatrix")
