@@ -22,7 +22,7 @@
 #' @export
 interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=NULL, invert=F)
 {
-
+  S4Vectors::elementMetadata(interactions) <- S4Vectors::elementMetadata(interactions)[,1:grep("distance",colnames(S4Vectors::elementMetadata(interactions_regions)))]
   ## Setting pipe operator from magrittr package
   `%>%` <- magrittr::`%>%`
 
