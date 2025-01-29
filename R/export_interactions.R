@@ -55,60 +55,29 @@ export_interactions <- function(interactions, file, format = "ibed", over.write=
     message("Interactions is a peakmatrix. Exporting in individual files")
 
     int_list <- peakmatrix2list(peakmatrix = interactions,cutoff = cutoff)
-    files <- paste0("~/Downloads/prueba_ibed_",names(int_list),".ibed")
+    files <- paste0(sub("\\.[^\\.]*$", "", file),"_",names(int_list),gsub(".*\\.",".",basename(file)))
+    export_function <- switch(format,
+                              ibed = export_ibed,
+                              washU = export_washU,
+                              washUold = export_washUold,
+                              cytoscape = export_citoscape,
+                              bedpe = export_bedpe,
+                              seqmonk = export_seqmonk
+    )
+    mapply(export_function, int_list, files, MoreArgs = list(washU_seqname = washU_seqname))
 
-    if (format == "ibed")
-    {
-      invisible(mapply(export_ibed,int_list,files))
-    }
-    if (format == "washU")
-    {
-      invisible(mapply(export_washU,int_list,files,washU_seqname))
-    }
-    if (format == "washUold")
-    {
-      invisible(mapply(export_washUold,int_list,files,washU_seqname))
-    }
-    if (format == "cytoscape")
-    {
-      invisible(mapply(export_citoscape,int_list,files))
-    }
-    if (format == "bedpe")
-    {
-      invisible(mapply(export_bedpe,int_list,files))
-    }
-    if (format == "seqmonk")
-    {
-      invisible(mapply(export_seqmonk,int_list,files))
-    }
-
-  }else
+  } else
   {
     interactions <- interactions[interactions$CS >= cutoff]
-    if (format == "ibed")
-    {
-      export_ibed(interactions,file)
-    }
-    if (format == "washU")
-    {
-      export_washU(interactions,file,washU_seqname)
-    }
-    if (format == "washUold")
-    {
-      export_washUold(interactions,file,washU_seqname)
-    }
-    if (format == "cytoscape")
-    {
-      export_citoscape(interactions,file)
-    }
-    if (format == "bedpe")
-    {
-      export_bedpe(interactions,file)
-    }
-    if (format == "seqmonk")
-    {
-      export_seqmonk(interactions,file)
-    }
+    export_function <- switch(format,
+                              ibed = export_ibed,
+                              washU = export_washU,
+                              washUold = export_washUold,
+                              cytoscape = export_citoscape,
+                              bedpe = export_bedpe,
+                              seqmonk = export_seqmonk
+    )
+    export_function(interactions, file)
   }
 }
 
