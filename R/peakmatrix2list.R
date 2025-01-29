@@ -18,6 +18,7 @@ peakmatrix2list <- function(peakmatrix,cutoff = 5)
     stop("Input is not a peakmatrix")
   }
 
+  peakmatrix@parameters$load["type"] <- "ibed"
   m <- GenomicRanges::mcols(peakmatrix)
   initial <- grep("CS_",names(m))[1]-1
   CS <- grep("CS_",names(m))
