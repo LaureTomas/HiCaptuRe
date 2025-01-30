@@ -44,13 +44,14 @@ interactionsByBaits <- function(interactions, baits, sep=",")
     colnames(baits2) <- colnames(baits1)
 
     baits_final <- dplyr::as_tibble(rbind(baits1,baits2)) %>%
-      dplyr::group_by(bait_1) %>% dplyr::summarise(ID=unique(ID_1),
+      dplyr::group_by(ID_1, bait_1) %>% dplyr::summarise(
                                                  N_int=length(unique(ID_2)),
                                                  NOE=sum(bait_2 == "."),
                                                  interactingID=paste(unique(ID_2),collapse = ","),
                                                  interactingAnnotation=paste(unique(bait_2),collapse = ","),
                                                  interactingDistance=paste(distance,collapse = ",")) %>%
-      dplyr::rename("bait" = "bait_1")
+      dplyr::rename("bait" = "bait_1",
+                    "ID" = "ID_1")
 
     # baits_final2 <-  dplyr::as_tibble(rbind(baits1,baits2)) %>%
     #   dplyr::select(ID_1,ID_2,distance) %>% unique() %>%
