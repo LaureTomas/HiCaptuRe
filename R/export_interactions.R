@@ -34,7 +34,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write=
   {
     export_parameters(interactions,file)
   }
-  type <- interactions@parameters$load["type"]
+  type <- interactions@parameters$load[["type"]]
 
   if (format == "peakmatrix" &  type == "peakmatrix")
   {
@@ -52,8 +52,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write=
                           "dist", gsub("CS_","",colnames(int_df)[12:ncol(int_df)]))
     data.table::fwrite(int_df,file = file, col.names = T, row.names = F, quote = F, sep = "\t")
 
-  }
-  if (format != "peakmatrix" &  type == "peakmatrix")
+  } else if (format != "peakmatrix" &  type == "peakmatrix")
   {
     message("Interactions is a peakmatrix. Exporting in individual files")
 
