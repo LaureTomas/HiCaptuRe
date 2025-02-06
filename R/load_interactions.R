@@ -226,7 +226,8 @@ load_interactions <- function(file,washU_seqname="chr",...)
         new_data <- new_data[,c("chr_1","start_1","end_1","bait_1","ID_1",
                                 "chr_2","start_2","end_2","bait_2","ID_2",
                                 "reads",cell_types),with=F]
-        new_data[new_data$bait_1 == ".", ] <- c(new_data[new_data$bait_1 == ".", c(6:10, 1:5, 11:ncol(new_data))])
+        flip <- c(6:10, 1:5, 11:ncol(new_data))
+        new_data[new_data$bait_1 == ".", ] <- new_data[new_data$bait_1 == ".", ..flip]
 
       }else
       {
@@ -235,7 +236,8 @@ load_interactions <- function(file,washU_seqname="chr",...)
         new_data <- new_data[,c("chr_1","start_1","end_1","bait_1",
                                 "chr_2","start_2","end_2","bait_2",
                                 "reads","CS"),with=F]
-        new_data[new_data$bait_1 == ".",] <- c(new_data[new_data$bait_1 == ".",c(5:8,1:4,9,10)])
+        flip <- c(5:8,1:4,9,10)
+        new_data[new_data$bait_1 == ".", ] <- new_data[new_data$bait_1 == ".", ..flip]
       }
 
 
