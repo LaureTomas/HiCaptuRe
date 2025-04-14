@@ -14,25 +14,60 @@
 #' @return list object with 2 elements
 #'
 #' @note The package provides for a PAR coordinates file only for Homo sapiens for the genome version 38
-#'
+#' @note The package provides the motives and cut positions for several restriction enzymes (HindII, MboI, DpnII, EcoRI, BamHI)
 #'
 #' @importFrom Biostrings replaceAt DNAStringSet matchPattern
+#' @importFrom BSgenome getBSgenome
 #' @importFrom IRanges IRanges
-#' @importFrom GenomeInfoDb seqnames
-#'
+#' @importFrom GenomeInfoDb seqlevelsStyle seqnames
+#' @importFrom GenomicRanges makeGRangesFromDataFrame
 #'
 #' @export
-digest_genome <- function(genome = "GRCh38", RE_name = "hindIII", motif = "AAGCTT", cut_position = 1, select_chr = c(1:22, "X", "Y"), PAR_mask = T, PAR_file = NULL, ...) {
-  genome_name <- genome
-  ## Load reference genome from installed ones
-  genome <- tryCatch(
-    {
-      load_genome(genome = genome)
-    },
-    error = function(e) {
-      stop(e)
+digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, cut_position = NULL, select_chr = c(1:22, "X", "Y"), PAR_mask = T, PAR_file = NULL, ...) {
+
+  # Define enzyme database
+  enzyme_db <- list(
+    HindIII = list(motif = "AAGCTT", cut_position = 1),
+    EcoRI   = list(motif = "GAATTC", cut_position = 1),
+    BamHI   = list(motif = "GGATCC", cut_position = 1),
+    MboI    = list(motif = "GATC", cut_position = 0),
+    DpnII   = list(motif = "GATC", cut_position = 0)
+    )
+
+  # If user provides RE_name but no motif/cut_position, fill them in
+  if (!is.null(RE_name)) {
+    RE_name_upper <- toupper(RE_name)
+    matched_enzyme <- names(enzyme_db)[toupper(names(enzyme_db)) == RE_name_upper]
+
+    if (length(matched_enzyme) == 1) {
+      enzyme <- enzyme_db[[matched_enzyme]]
+
+      # If motif/cut_position not provided, fill them in
+      if (is.null(motif)) {
+        motif <- enzyme$motif
+      } else if (motif != enzyme$motif) {
+        warning(sprintf("Provided motif (%s) differs from known motif (%s) for enzyme %s.", motif, enzyme$motif, matched_enzyme))
+      }
+
+      if (is.null(cut_position)) {
+        cut_position <- enzyme$cut_position
+      } else if (cut_position != enzyme$cut_position) {
+        warning(sprintf("Provided cut_position (%s) differs from known cut_position (%s) for enzyme %s.", cut_position, enzyme$cut_position, matched_enzyme))
+      }
+    } else {
+      stop("Unknown restriction enzyme: ", RE_name)
     }
-  )
+  }
+
+  # Safety check
+  if (is.null(motif) || is.null(cut_position)) {
+    stop("Please provide both 'motif' and 'cut_position' or a valid 'RE_name'")
+  }
+
+  ## get genome
+  genome_name <- genome
+  genome <- BSgenome::getBSgenome(genome)
+
   ## If Pseudoautosomal Regions (PAR) masked, read provided file for human
   if (PAR_mask) {
     if (is.null(PAR_file)) {
@@ -51,6 +86,15 @@ digest_genome <- function(genome = "GRCh38", RE_name = "hindIII", motif = "AAGCT
     }
   } ## PAR mask
 
+  # Harmonize styles
+  PARGR <- GenomicRanges::makeGRangesFromDataFrame(PAR)
+
+  if (!any(GenomeInfoDb::seqlevelsStyle(PARGR) %in% GenomeInfoDb::seqlevelsStyle(genome)))
+  {
+    warning("seqlevelsStyle of PAR changed to match seqlevelsStyle(genome)")
+    GenomeInfoDb::seqlevelsStyle(PARGR) <- GenomeInfoDb::seqlevelsStyle(genome)
+  }
+
   ## Select primary chromosomes
   chrs <- GenomeInfoDb::seqnames(genome)
 
@@ -64,39 +108,34 @@ digest_genome <- function(genome = "GRCh38", RE_name = "hindIII", motif = "AAGCT
   p <- progressr::progressor(steps = length(chrs))
 
   ## Digest genome by chromosomes
-  digest <- data.frame()
-  for (chr in chrs)
-  {
-    p(sprintf(paste("Digesting", chr)))
+  for (chr in chrs) {
+    p(sprintf("Digesting %s", chr))
+
+    chr_seq <- genome[[chr]]
+
+    # Mask PAR regions, if needed
     if (PAR_mask) {
-      if (grepl(unique(PAR$seqnames), chr)) {
+      chr_PAR <- GenomicRanges::subsetByOverlaps(PARGR, GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq))))
+      if (length(chr_PAR) > 0) {
         chr_seq <- Biostrings::replaceAt(
-          genome[[chr]], IRanges::IRanges(PAR$start[1], PAR$end[1]),
-          Biostrings::DNAStringSet(strrep("N", length(PAR$start[1]:PAR$end[1])))
-        )
-        chr_seq <- Biostrings::replaceAt(
-          chr_seq, IRanges::IRanges(PAR$start[2], PAR$end[2]),
-          Biostrings::DNAStringSet(strrep("N", length(PAR$start[2]:PAR$end[2])))
+          chr_seq,
+          ranges(chr_PAR),
+          Biostrings::DNAStringSet(rep("N", length(chr_PAR)))
         )
       }
-      chr_seq <- genome[[chr]]
-    } else {
-      chr_seq <- genome[[chr]]
     }
 
     m <- Biostrings::matchPattern(motif, chr_seq)
-
     correct <- start(m) - 1 + cut_position
 
     starts <- c(1, correct + 1)
     ends <- c(correct, length(chr_seq))
 
     df <- data.frame(seqnames = chr, start = starts, end = ends)
-
     digest <- rbind(digest, df)
   }
 
-  if (is.null(PAR_file)) {
+  if (!PAR_mask) {
     PAR_file <- "NULL"
   } else {
     PAR_file <- normalizePath(PAR_file)
