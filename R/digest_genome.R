@@ -22,9 +22,12 @@
 #' @importFrom GenomeInfoDb seqlevelsStyle seqnames
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #'
+#'
+#' @examples
+#' digest <- digest_genome(genome = "GRCh38", RE_name = "HindIII")
+#'
 #' @export
 digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, cut_position = NULL, select_chr = c(1:22, "X", "Y"), PAR_mask = T, PAR_file = NULL, ...) {
-
   # Define enzyme database
   enzyme_db <- list(
     HindIII = list(motif = "AAGCTT", cut_position = 1),
@@ -32,7 +35,7 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
     BamHI   = list(motif = "GGATCC", cut_position = 1),
     MboI    = list(motif = "GATC", cut_position = 0),
     DpnII   = list(motif = "GATC", cut_position = 0)
-    )
+  )
 
   # If user provides RE_name but no motif/cut_position, fill them in
   if (!is.null(RE_name)) {
@@ -89,8 +92,7 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
   # Harmonize styles
   PARGR <- GenomicRanges::makeGRangesFromDataFrame(PAR)
 
-  if (!any(GenomeInfoDb::seqlevelsStyle(PARGR) %in% GenomeInfoDb::seqlevelsStyle(genome)))
-  {
+  if (!any(GenomeInfoDb::seqlevelsStyle(PARGR) %in% GenomeInfoDb::seqlevelsStyle(genome))) {
     warning("seqlevelsStyle of PAR changed to match seqlevelsStyle(genome)")
     GenomeInfoDb::seqlevelsStyle(PARGR) <- GenomeInfoDb::seqlevelsStyle(genome)
   }
