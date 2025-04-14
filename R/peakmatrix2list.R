@@ -10,28 +10,24 @@
 #' @importFrom GenomicRanges mcols
 #'
 #' @export
-peakmatrix2list <- function(peakmatrix,cutoff = 5)
-{
+peakmatrix2list <- function(peakmatrix, cutoff = 5) {
   type <- peakmatrix@parameters$load["type"]
-  if (type != "peakmatrix")
-  {
+  if (type != "peakmatrix") {
     stop("Input is not a peakmatrix")
   }
 
   peakmatrix@parameters$load["type"] <- "ibed"
   m <- GenomicRanges::mcols(peakmatrix)
-  initial <- grep("CS_",names(m))[1]-1
-  CS <- grep("CS_",names(m))
-  final <- which(names(m) %in% c("counts","int","distance"))
+  initial <- grep("CS_", names(m))[1] - 1
+  CS <- grep("CS_", names(m))
+  final <- which(names(m) %in% c("counts", "int", "distance"))
 
-  int_list <- lapply(CS, function(x)
-  {
-    sub_int <- peakmatrix[m[,x] >= cutoff, c(1:initial,x,final)]
-    names(GenomicRanges::mcols(sub_int))[initial+1] <- "CS"
+  int_list <- lapply(CS, function(x) {
+    sub_int <- peakmatrix[m[, x] >= cutoff, c(1:initial, x, final)]
+    names(GenomicRanges::mcols(sub_int))[initial + 1] <- "CS"
     sub_int
   })
 
-  names(int_list) <- gsub("CS_","",names(m)[CS])
+  names(int_list) <- gsub("CS_", "", names(m)[CS])
   return(int_list)
 }
-

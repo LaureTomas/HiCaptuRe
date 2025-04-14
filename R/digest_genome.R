@@ -22,35 +22,30 @@
 #'
 #'
 #' @export
-digest_genome <- function(genome="GRCh38",RE_name="hindIII",motif="AAGCTT",cut_position=1,select_chr=c(1:22,"X","Y"),PAR_mask=T,PAR_file=NULL,...)
-{
+digest_genome <- function(genome = "GRCh38", RE_name = "hindIII", motif = "AAGCTT", cut_position = 1, select_chr = c(1:22, "X", "Y"), PAR_mask = T, PAR_file = NULL, ...) {
   genome_name <- genome
   ## Load reference genome from installed ones
-  genome <-  tryCatch({
-    load_genome(genome = genome)
-  }, error = function(e) {
-    stop(e)
-  })
+  genome <- tryCatch(
+    {
+      load_genome(genome = genome)
+    },
+    error = function(e) {
+      stop(e)
+    }
+  )
   ## If Pseudoautosomal Regions (PAR) masked, read provided file for human
-  if (PAR_mask)
-  {
-    if (is.null(PAR_file))
-    {
-      PAR_file <- system.file("extdata", paste0("PAR_",gsub(" ","_",metadata(genome)$organism),"_coordinates.txt"), package="HiCaptuRe")
-      if (file.exists(PAR_file))
-      {
-        PAR <- read.delim(PAR_file,header = T,...)
-      } else
-      {
-        stop(paste("There is no PAR file provided for",metadata(genome)$organism,"\n It must be a headed file with seqnames,start,end columns"))
+  if (PAR_mask) {
+    if (is.null(PAR_file)) {
+      PAR_file <- system.file("extdata", paste0("PAR_", gsub(" ", "_", metadata(genome)$organism), "_coordinates.txt"), package = "HiCaptuRe")
+      if (file.exists(PAR_file)) {
+        PAR <- read.delim(PAR_file, header = T, ...)
+      } else {
+        stop(paste("There is no PAR file provided for", metadata(genome)$organism, "\n It must be a headed file with seqnames,start,end columns"))
       }
-    } else
-    {
-      if (file.exists(PAR_file))
-      {
-        PAR <- read.delim(PAR_file,header = T,...)
-      } else
-      {
+    } else {
+      if (file.exists(PAR_file)) {
+        PAR <- read.delim(PAR_file, header = T, ...)
+      } else {
         stop("The PAR file provided doesn't exist")
       }
     }
@@ -59,71 +54,68 @@ digest_genome <- function(genome="GRCh38",RE_name="hindIII",motif="AAGCTT",cut_p
   ## Select primary chromosomes
   chrs <- GenomeInfoDb::seqnames(genome)
 
-  if (!is.null(select_chr))
-  {
+  if (!is.null(select_chr)) {
     chrs <- chrs[chrs %in% select_chr]
   }
-  if (length(chrs) == 0)
-  {
+  if (length(chrs) == 0) {
     stop("Chromosomes selected in 'select_chr' are not present in this genome. Please try changing 'select_chr' or setting it to 'NULL'")
   }
 
   p <- progressr::progressor(steps = length(chrs))
 
-
   ## Digest genome by chromosomes
   digest <- data.frame()
   for (chr in chrs)
   {
-    p(sprintf(paste("Digesting",chr)))
-    if (PAR_mask)
-    {
-      if (grepl(unique(PAR$seqnames),chr))
-      {
-        chr_seq <- Biostrings::replaceAt(genome[[chr]], IRanges::IRanges(PAR$start[1], PAR$end[1]),
-                                         Biostrings::DNAStringSet(strrep("N",length(PAR$start[1]:PAR$end[1]))))
-        chr_seq <- Biostrings::replaceAt(chr_seq, IRanges::IRanges(PAR$start[2], PAR$end[2]),
-                                         Biostrings::DNAStringSet(strrep("N",length(PAR$start[2]:PAR$end[2]))))
+    p(sprintf(paste("Digesting", chr)))
+    if (PAR_mask) {
+      if (grepl(unique(PAR$seqnames), chr)) {
+        chr_seq <- Biostrings::replaceAt(
+          genome[[chr]], IRanges::IRanges(PAR$start[1], PAR$end[1]),
+          Biostrings::DNAStringSet(strrep("N", length(PAR$start[1]:PAR$end[1])))
+        )
+        chr_seq <- Biostrings::replaceAt(
+          chr_seq, IRanges::IRanges(PAR$start[2], PAR$end[2]),
+          Biostrings::DNAStringSet(strrep("N", length(PAR$start[2]:PAR$end[2])))
+        )
       }
       chr_seq <- genome[[chr]]
-    }
-    else
-    {
+    } else {
       chr_seq <- genome[[chr]]
     }
 
     m <- Biostrings::matchPattern(motif, chr_seq)
 
-    correct <- start(m)-1+cut_position
+    correct <- start(m) - 1 + cut_position
 
-    starts <- c(1,correct+1)
-    ends <- c(correct,length(chr_seq))
+    starts <- c(1, correct + 1)
+    ends <- c(correct, length(chr_seq))
 
-    df <- data.frame(seqnames=chr,start=starts,end=ends)
+    df <- data.frame(seqnames = chr, start = starts, end = ends)
 
-    digest <- rbind(digest,df)
+    digest <- rbind(digest, df)
   }
 
-  if (is.null(PAR_file))
-  {
+  if (is.null(PAR_file)) {
     PAR_file <- "NULL"
-  } else
-  {
+  } else {
     PAR_file <- normalizePath(PAR_file)
   }
 
   digest$fragment_ID <- 1:nrow(digest)
-  output <- list(digest=digest,
-                 parameters=c("Genome"=genome_name,
-                              "Genome_Package"=genome@pkgname,
-                              "Restriction_Enzyme"=RE_name,
-                              "Motif"=motif,
-                              "Cut_Position"=cut_position,
-                              "Selected_Chromosomes"=paste(select_chr,collapse = ","),
-                              "PAR_mask"=PAR_mask,
-                              "PAR_file"=PAR_file),
-                 seqinfo=seqinfo(genome)[chrs])
+  output <- list(
+    digest = digest,
+    parameters = c(
+      "Genome" = genome_name,
+      "Genome_Package" = genome@pkgname,
+      "Restriction_Enzyme" = RE_name,
+      "Motif" = motif,
+      "Cut_Position" = cut_position,
+      "Selected_Chromosomes" = paste(select_chr, collapse = ","),
+      "PAR_mask" = PAR_mask,
+      "PAR_file" = PAR_file
+    ),
+    seqinfo = seqinfo(genome)[chrs]
+  )
   return(output)
 }
-
-
