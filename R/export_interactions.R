@@ -18,18 +18,21 @@
 #' @importFrom igraph simplify as_edgelist
 #' @importFrom stats setNames
 #'
+#'
+#' @examples
+#' export_interactions(interactions, file = "output.ibed", format = "ibed", over.write = TRUE)
+#'
 #' @export
 export_interactions <- function(interactions, file, format = "ibed", over.write = F, washU_seqname = "chr", cutoff = 5, parameters = F) {
   format <- match.arg(arg = format, choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe","seqmonk"), several.ok = F)
   if (file.exists(file) & !over.write) {
-    user_input <- readline(paste(basename(file), "already exists. Do you want to overwrite it? (y/n)   "))
-    if (user_input != "y") {
-      stop()
-    }
+    stop("File already exists. Use `over.write = TRUE` to overwrite.")
   }
+
   if (parameters) {
     export_parameters(interactions, file)
   }
+
   type <- interactions@parameters$load[["type"]]
 
   if (format == "peakmatrix" & type == "peakmatrix") {
@@ -51,32 +54,29 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
     )
     data.table::fwrite(int_df, file = file, col.names = T, row.names = F, quote = F, sep = "\t")
   } else if (format != "peakmatrix" & type == "peakmatrix") {
-    message("Interactions is a peakmatrix. Exporting in individual files")
+    warning("Interactions is a peakmatrix, but exporting in individual files")
 
     int_list <- peakmatrix2list(peakmatrix = interactions, cutoff = cutoff)
     files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
-    export_function <- switch(format,
-      ibed = export_ibed,
-      washU = export_washU,
-      washUold = export_washUold,
-      cytoscape = export_citoscape,
-      bedpe = export_bedpe,
-      seqmonk = export_seqmonk
-    )
+    export_function <- export_dispatch(format)
     mapply(export_function, int_list, files, MoreArgs = list(washU_seqname = washU_seqname))
   } else {
     interactions <- interactions[interactions$CS >= cutoff]
-    export_function <- switch(format,
-      ibed = export_ibed,
-      washU = export_washU,
-      washUold = export_washUold,
-      cytoscape = export_citoscape,
-      bedpe = export_bedpe,
-      seqmonk = export_seqmonk
-    )
+    export_function <- export_dispatch(format)
     export_function(interactions, file)
   }
 }
+
+export_dispatch <- function(format) {
+  switch(format,
+         ibed = export_ibed,
+         washU = export_washU,
+         washUold = export_washUold,
+         cytoscape = export_citoscape,
+         bedpe = export_bedpe,
+         seqmonk = export_seqmonk)
+}
+
 
 export_parameters <- function(interactions, file) {
   file <- paste0(file, ".parameters")
@@ -120,10 +120,6 @@ export_washU <- function(ints, file, washU_seqname = "chr") {
   )
   colnames(washU) <- c("regionI", "regionIICS")
   data.table::fwrite(washU, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
-
-  message(paste0("washU track file: ", file, "\n"))
-  message(paste0('browseURL("http://epigenomegateway.wustl.edu/browser/")'))
-  message("Click on Tracks > Local Text Tracks > Choose long-range text > Load washU file")
 }
 
 export_washUold <- function(ints, file, washU_seqname = "chr") {
@@ -135,10 +131,6 @@ export_washUold <- function(ints, file, washU_seqname = "chr") {
   )
   colnames(washU) <- c("regionI", "regionII", "CS")
   data.table::fwrite(washU, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
-
-  message(paste0("washU track file: ", file, "\n"))
-  message(paste0('browseURL("http://epigenomegateway.wustl.edu/legacy/")'))
-  message("Click on Apps > File Upload > Choose File > Setup > Pairwise Interaction > Add as Track")
 }
 
 export_bedpe <- function(ints, file) {
@@ -173,3 +165,5 @@ export_seqmonk <- function(ints, file) {
   seqmonk <- dplyr::bind_rows(df1, stats::setNames(df2, names(df1))) %>% dplyr::arrange(ID)
   data.table::fwrite(seqmonk[, -ncol(seqmonk)], file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
+
+
