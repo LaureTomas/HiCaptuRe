@@ -29,9 +29,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
     ## Reading file and detecting file format depending of the number of columns
     ## Transforming all file formats to seqmonk to proceed with the cleaning
 
-    p <- progressr::progressor(steps = 10)
-
-    p(sprintf("Reading File"))
     data <- data.table::fread(file = file, header = T, stringsAsFactors = F, na.strings = "")
 
     if (ncol(data) > 10) {
@@ -48,8 +45,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
       df <- df[order(df$index), ]
       data <- df[, -c(which(colnames(df) == "index"))]
       data$rownames <- 1:nrow(data)
-      p(sprintf("Preparing Data"))
-
 
       ## Extracting name of all cell types in this peakmatrix
       cell_types <- paste0("CS_", colnames(data)[7:(ncol(data) - 1)])
@@ -59,7 +54,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
         cbind(data[seq(1, nrow(data), 2), ], data[seq(2, nrow(data), 2), ]),
         cbind(data[seq(2, nrow(data), 2), ], data[seq(1, nrow(data), 2), ])
       )
-      p(sprintf("Sorting Data"))
 
       ## Ordering by the original line that came
       new_data <- dplyr::as_tibble(new_data[order(as.numeric(rownames(new_data))), ], .name_repair = "minimal")
@@ -75,7 +69,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
 
         message(paste(basename(file), "is in seqmonk format"))
         data$rownames <- 1:nrow(data)
-        p(sprintf("Preparing Data"))
       }
       if (ncol(data) == 10 & any(grepl("bait", colnames(data)))) {
         type <- "ibed"
@@ -89,7 +82,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
         df <- df[order(df$index), ]
         data <- df[, 1:6]
         data$rownames <- 1:nrow(data)
-        p(sprintf("Preparing Data"))
       }
       if (ncol(data) == 10 & !any(grepl("bait", colnames(data)))) {
         type <- "bedpe"
@@ -109,7 +101,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
         df <- df[order(df$index), ]
         data <- df[, 1:6]
         data$rownames <- 1:nrow(data)
-        p(sprintf("Preparing Data"))
       }
 
 
@@ -135,7 +126,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
                 into = c("c", "d"), sep = ",", remove = TRUE,
                 convert = FALSE, extra = "warn", fill = "warn"
               )
-            p(sprintf("Preparing Data"))
           }
           if (grepl(":", data[1, 1])) {
             type <- "washU_old"
@@ -161,7 +151,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
                 into = c("e", "f"), sep = ",", remove = TRUE,
                 convert = FALSE, extra = "warn", fill = "warn"
               )
-            p(sprintf("Preparing Data"))
           }
 
           data[, c(1, 4)] <- lapply(data[, c(1, 4)], function(x) as.character(gsub(washU_seqname, "", x)))
@@ -185,7 +174,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
         cbind(data[seq(1, nrow(data), 2), ], data[seq(2, nrow(data), 2), ]),
         cbind(data[seq(2, nrow(data), 2), ], data[seq(1, nrow(data), 2), ])
       )
-      p(sprintf("Sorting Data"))
 
       ## Ordering by the original line that came
       new_data <- dplyr::as_tibble(new_data[order(as.numeric(rownames(new_data))), ],
@@ -198,8 +186,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
       )
     } # end non-peakmatrix
 
-    p(sprintf("Real Duplicates"))
-
     ## Here, could be real duplicated interactions, check with unique
     new_data$bait_1 <- stringr::str_replace_all(new_data$bait_1, "\\|", ",")
     new_data$bait_2 <- stringr::str_replace_all(new_data$bait_2, "\\|", ",")
@@ -211,7 +197,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
     new_data <- unique(new_data)
 
     dup_real <- (nrow(data) - nrow(new_data)) / 2
-    p(sprintf("CS Duplicates"))
 
     ## Filtering those duplicated interactions with different CS, by the higher one
     new_data <- new_data[, lapply(.SD, max), by = list(chr_1, start_1, end_1, chr_2, start_2, end_2)]
@@ -222,8 +207,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
     if (all.equal(new_data[, grep("CS_1.*", colnames(new_data), perl = T), with = F], new_data[, grep("CS_2.*", colnames(new_data)), with = F], check.attributes = F)) {
       ## Keeping only one of the artificial inverted duplications
       new_data <- dplyr::slice(new_data, seq(1, dplyr::n(), 2))
-      p(sprintf("Cleaning"))
-
       ## Removing interactions that involve the MT chromosome
 
       message(paste0("\n", (nrow(data) / 2) - nrow(new_data)), " interactions removed\n\t- ", dup_real, " interactions were real duplicates\n\t- ", dup_CS, " interactions duplicated with different Chicago Score")
@@ -249,8 +232,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
         flip <- c(5:8, 1:4, 9, 10)
         new_data[new_data$bait_1 == ".", ] <- new_data[new_data$bait_1 == ".", ..flip]
       }
-
-      p(sprintf("Digesting Genome"))
 
       digest <- tryCatch(
         {
@@ -287,16 +268,12 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
       S4Vectors::elementMetadata(region2) <- S4Vectors::elementMetadata(region2)[, order]
       # GenomicRanges::mcols(region2) <- GenomicRanges::mcols(region2)
 
-      p(sprintf("Type of Interactions"))
-
       gi <- GenomicInteractions::GenomicInteractions(region1, region2)
 
       names(GenomicRanges::mcols(gi)) <- gsub(x = names(GenomicRanges::mcols(gi)), pattern = "anchor[1-2]\\.", "")
 
       ## Annotating regions with P, OE or uce
       gi <- annotate_BOE(gi)
-
-      p(sprintf("Sorting"))
 
       ## Sorting interactions P_P
       cond <- ((gi$ID_1 > gi$ID_2) & gi$int == "B_B") | ((gi$ID_1 < gi$ID_2) & gi$int == "OE_B")
@@ -313,7 +290,6 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
 
       # gi@elementMetadata <- gi@elementMetadata[,-which(colnames(gi@elementMetadata) %in% c("counts"))]
 
-      p(sprintf("Finishing"))
       final <- HiCaptuRe(genomicInteractions = gi, parameters = list(digest = digest$parameters, load = c(file = normalizePath(file), type = type)), ByBaits = list(), ByRegions = list())
       final$distance <- GenomicInteractions::calculateDistances(final)
 
