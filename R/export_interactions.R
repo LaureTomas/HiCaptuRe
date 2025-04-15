@@ -6,7 +6,6 @@
 #' @param file full path to desired output file (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)
 #' @param format type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe, seqmonk)
 #' @param over.write T/F to over write the output file
-#' @param washU_seqname string to add to the seqnames to export to washU format
 #' @param cutoff Chicago score cutoff to export interactions
 #' @param parameters T/F to also export the parameters of the given object
 
@@ -23,7 +22,7 @@
 #' export_interactions(interactions, file = "output.ibed", format = "ibed", over.write = TRUE)
 #'
 #' @export
-export_interactions <- function(interactions, file, format = "ibed", over.write = F, washU_seqname = "chr", cutoff = 5, parameters = F) {
+export_interactions <- function(interactions, file, format = "ibed", over.write = F, cutoff = 5, parameters = F) {
   format <- match.arg(arg = format, choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe","seqmonk"), several.ok = F)
   if (file.exists(file) & !over.write) {
     stop("File already exists. Use `over.write = TRUE` to overwrite.")
@@ -59,7 +58,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
     int_list <- peakmatrix2list(peakmatrix = interactions, cutoff = cutoff)
     files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
     export_function <- export_dispatch(format)
-    mapply(export_function, int_list, files, MoreArgs = list(washU_seqname = washU_seqname))
+    mapply(export_function, int_list, files)
   } else {
     interactions <- interactions[interactions$CS >= cutoff]
     export_function <- export_dispatch(format)
@@ -111,22 +110,24 @@ export_ibed <- function(ints, file) {
   data.table::fwrite(int_df, file = file, col.names = T, row.names = F, quote = F, sep = "\t")
 }
 
-export_washU <- function(ints, file, washU_seqname = "chr") {
+export_washU <- function(ints, file) {
+  seqlevelsStyle(ints) <- "UCSC"
   int_df <- dplyr::as_tibble(ints)
   int_df <- dplyr::arrange(int_df, seqnames1, start1, end1, seqnames2, start2, end2)
   washU <- data.frame(
-    paste(paste(washU_seqname, int_df$seqnames1, sep = ""), int_df$start1, int_df$end1, sep = "\t"),
-    paste(paste(washU_seqname, int_df$seqnames2, sep = ""), ":", int_df$start2, "-", int_df$end2, ",", int_df$CS, sep = "")
+    paste(int_df$seqnames1, int_df$start1, int_df$end1, sep = "\t"),
+    paste(int_df$seqnames2, ":", int_df$start2, "-", int_df$end2, ",", int_df$CS, sep = "")
   )
   colnames(washU) <- c("regionI", "regionIICS")
   data.table::fwrite(washU, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
 
-export_washUold <- function(ints, file, washU_seqname = "chr") {
+export_washUold <- function(ints, file) {
+  seqlevelsStyle(ints) <- "UCSC"
   int_df <- as.data.frame(ints)
   washU <- data.frame(
-    paste(paste(washU_seqname, int_df$seqnames1, sep = ""), ":", int_df$start1, ",", int_df$end1, sep = ""),
-    paste(paste(washU_seqname, int_df$seqnames2, sep = ""), ":", int_df$start2, ",", int_df$end2, sep = ""),
+    paste(int_df$seqnames1, ":", int_df$start1, ",", int_df$end1, sep = ""),
+    paste(int_df$seqnames2, ":", int_df$start2, ",", int_df$end2, sep = ""),
     int_df$CS
   )
   colnames(washU) <- c("regionI", "regionII", "CS")
