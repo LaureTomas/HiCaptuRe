@@ -4,7 +4,7 @@
 #'
 #' @param interactions GenomicInteractions object from \code{\link{load_interactions}}
 #' @param file full path to desired output file (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)
-#' @param format type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)
+#' @param format type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe, seqmonk)
 #' @param over.write T/F to over write the output file
 #' @param washU_seqname string to add to the seqnames to export to washU format
 #' @param cutoff Chicago score cutoff to export interactions
@@ -20,7 +20,7 @@
 #'
 #' @export
 export_interactions <- function(interactions, file, format = "ibed", over.write = F, washU_seqname = "chr", cutoff = 5, parameters = F) {
-  format <- match.arg(arg = format, choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe"), several.ok = F)
+  format <- match.arg(arg = format, choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe","seqmonk"), several.ok = F)
   if (file.exists(file) & !over.write) {
     user_input <- readline(paste(basename(file), "already exists. Do you want to overwrite it? (y/n)   "))
     if (user_input != "y") {
@@ -159,13 +159,13 @@ export_citoscape <- function(ints, file) {
 }
 
 export_seqmonk <- function(ints, file) {
-  int_df$ID <- 1:nrow(int_df)
-  df1 <- int_df[, c(
+  ints$ID <- 1:length(ints)
+  df1 <- dplyr::as_tibble(ints)[, c(
     "seqnames2", "start2", "end2", "bait_2",
     "reads", "CS", "ID"
   )]
 
-  df2 <- int_df[, c(
+  df2 <- dplyr::as_tibble(ints)[, c(
     "seqnames1", "start1", "end1", "bait_1",
     "reads", "CS", "ID"
   )]
