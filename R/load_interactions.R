@@ -283,7 +283,7 @@ generate_GInteractions <- function(new_datadd, digest) {
   ID2 <- GenomicRanges::findOverlaps(region2, digestGR)
 
   if (length(ID1) == 0 | length(ID2) == 0) {
-    stop("No fragment found in digest.\nMaybe the genome version is not correct")
+    stop("No fragment found in digest. Maybe the genome version is not correct")
   }
   if (length(unique(region1)) != length(unique(S4Vectors::subjectHits(ID1))) | length(unique(region2)) != length(unique(S4Vectors::subjectHits(ID2)))) {
     stop("Digest does not perfectly match with fragments in data. Some fragments from digest overlap more than one fragment in data, or viceversa. Check digest_genome() arguments.")
