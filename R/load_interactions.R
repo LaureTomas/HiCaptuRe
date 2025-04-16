@@ -3,7 +3,7 @@
 #' This function loads interaction files from Chicago R package into a GenomicInteractions Object, and remove possible duplicated interactions
 #'
 #' @param file full path to the interaction file (seqmonk, ibed, washU)
-#' @param washU_seqname character to remove from seqnames column when using washU format
+#' @param sep separator to read the file
 #' @param ... arguments to pass to \link[HiCaptuRe]{digest_genome}
 #'
 #' @return HiCaptuRe object
