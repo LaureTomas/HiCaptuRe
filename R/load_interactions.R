@@ -13,225 +13,29 @@
 #' @importFrom stringr str_replace_all
 #' @importFrom GenomicInteractions GenomicInteractions calculateDistances
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split mcols findOverlaps seqnames
-#' @importFrom GenomeInfoDb seqinfo
 #' @importFrom data.table fread
 #' @importFrom progressr progressor
 #' @importFrom S4Vectors elementMetadata subjectHits
 #'
 #' @export
-load_interactions <- function(file, washU_seqname = "chr", ...) {
+load_interactions <- function(file, sep = "\t", ...) {
   if (!file.exists(file)) {
     stop(paste(basename(file), "does not exist"))
-  } else {
+  }
     ## Setting pipe operator from magrittr package
     `%>%` <- magrittr::`%>%`
 
-    ## Reading file and detecting file format depending of the number of columns
-    ## Transforming all file formats to seqmonk to proceed with the cleaning
+    data <- data.table::fread(file = file,sep = sep, stringsAsFactors = F, na.strings = "")
+    format <- detect_format(data)
+    process_function <- switch(format,
+           ibed = process_ibed,
+           washU = process_washU,
+           washUold = process_washUold,
+           peakmatrix = process_peakmatrix,
+           bedpe = process_bedpe,
+           seqmonk = process_seqmonk)
 
-    data <- data.table::fread(file = file, header = T, stringsAsFactors = F, na.strings = "")
-
-    if (ncol(data) > 10) {
-      type <- "peakmatrix"
-
-      data <- data[, !grepl("dist", colnames(data)), with = F]
-      reads <- rep(0, nrow(data))
-      df1 <- cbind(data[, 1:5], reads, data[, 11:ncol(data), with = F])
-      df2 <- cbind(data[, 6:10], reads, data[, 11:ncol(data), with = F])
-      colnames(df2) <- colnames(df1)
-
-      df <- rbind(data.frame(df1, index = 1:nrow(df1)), data.frame(df2, index = 1:nrow(df2)))
-
-      df <- df[order(df$index), ]
-      data <- df[, -c(which(colnames(df) == "index"))]
-      data$rownames <- 1:nrow(data)
-
-      ## Extracting name of all cell types in this peakmatrix
-      cell_types <- paste0("CS_", colnames(data)[7:(ncol(data) - 1)])
-
-      ## Putting together in one line each interactions and duplicating them
-      new_data <- rbind(
-        cbind(data[seq(1, nrow(data), 2), ], data[seq(2, nrow(data), 2), ]),
-        cbind(data[seq(2, nrow(data), 2), ], data[seq(1, nrow(data), 2), ])
-      )
-
-      ## Ordering by the original line that came
-      new_data <- dplyr::as_tibble(new_data[order(as.numeric(rownames(new_data))), ], .name_repair = "minimal")
-      colnames(new_data) <- c(
-        "chr_1", "start_1", "end_1", "ID_1", "bait_1", "read_1", paste0("CS_1_ct", 1:length(cell_types)), "rownames1",
-        "chr_2", "start_2", "end_2", "ID_2", "bait_2", "read_2", paste0("CS_2_ct", 1:length(cell_types)), "rownames2"
-      )
-    } else {
-      if (ncol(data) == 6) {
-        type <- "seqmonk"
-
-        data <- data.table::fread(file = file, header = F, stringsAsFactors = F, na.strings = "")
-
-        message(paste(basename(file), "is in seqmonk format"))
-        data$rownames <- 1:nrow(data)
-      }
-      if (ncol(data) == 10 & any(grepl("bait", colnames(data)))) {
-        type <- "ibed"
-
-        message(paste(basename(file), "is in ibed format"))
-        a <- data
-        a1 <- a[, c(1:4, 9:10), with = F]
-        a2 <- a[, c(5:10), with = F]
-        colnames(a2) <- colnames(a1)
-        df <- rbind(data.frame(a1, index = 1:nrow(a1)), data.frame(a2, index = 1:nrow(a2)))
-        df <- df[order(df$index), ]
-        data <- df[, 1:6]
-        data$rownames <- 1:nrow(data)
-      }
-      if (ncol(data) == 10 & !any(grepl("bait", colnames(data)))) {
-        type <- "bedpe"
-
-        message(paste(basename(file), "is in bedpe format"))
-        warning("We do not recommend to use bedpe format \n The HiCaptuRe output must be annotated, see ??annotate_interactions")
-
-        data <- data.table::fread(file = file, header = F, stringsAsFactors = F, sep = "\t") # reading file
-        annotations <- rep("non-annotated", nrow(data))
-        reads <- rep(0, nrow(data))
-
-        df1 <- cbind(data[, 1:3], annotations, reads, data[, 8])
-        df2 <- cbind(data[, 4:6], annotations, reads, data[, 8])
-        colnames(df2) <- colnames(df1)
-
-        df <- rbind(data.frame(df1, index = 1:nrow(df1)), data.frame(df2, index = 1:nrow(df2)))
-        df <- df[order(df$index), ]
-        data <- df[, 1:6]
-        data$rownames <- 1:nrow(data)
-      }
-
-
-      if (ncol(data) %in% 3:4) ## if washU
-        {
-          if (!grepl(":", data[1, 1])) {
-            type <- "washU"
-
-            message(paste(basename(file), "is in washU new format"))
-            warning("We do not recommend to use washU format from Chicago \n The HiCaptuRe output must be annotated, see ??annotate_interactions")
-
-            data <- data.table::fread(file = file, header = F, stringsAsFactors = F, sep = "\t") # reading file
-
-            data <- tidyr::separate(data, 4,
-              into = c("a", "b"), sep = ":", remove = TRUE,
-              convert = FALSE, extra = "warn", fill = "warn"
-            ) %>%
-              tidyr::separate(5,
-                into = c("b", "c"), sep = "-", remove = TRUE,
-                convert = FALSE, extra = "warn", fill = "warn"
-              ) %>%
-              tidyr::separate(6,
-                into = c("c", "d"), sep = ",", remove = TRUE,
-                convert = FALSE, extra = "warn", fill = "warn"
-              )
-          }
-          if (grepl(":", data[1, 1])) {
-            type <- "washU_old"
-
-            message(paste(basename(file), "is in washU old format"))
-            warning("We do not recommend to use washU format from Chicago \n The HiCaptuRe output must be annotated, see ??annotate_interactions")
-
-            data <- data.table::fread(file = file, header = F, stringsAsFactors = F, sep = "\t") # reading file
-
-            data <- tidyr::separate(data, 1,
-              into = c("a", "b"), sep = ":", remove = TRUE,
-              convert = FALSE, extra = "warn", fill = "warn"
-            ) %>%
-              tidyr::separate(2,
-                into = c("b", "c"), sep = ",", remove = TRUE,
-                convert = FALSE, extra = "warn", fill = "warn"
-              ) %>%
-              tidyr::separate(4,
-                into = c("d", "e"), sep = ":", remove = TRUE,
-                convert = FALSE, extra = "warn", fill = "warn"
-              ) %>%
-              tidyr::separate(5,
-                into = c("e", "f"), sep = ",", remove = TRUE,
-                convert = FALSE, extra = "warn", fill = "warn"
-              )
-          }
-
-          data[, c(1, 4)] <- lapply(data[, c(1, 4)], function(x) as.character(gsub(washU_seqname, "", x)))
-          data[, c(2:3, 5:7)] <- as.data.frame(apply(data[, c(2:3, 5:7)], 2, function(x) as.numeric(x)))
-
-          annotations <- rep("non-annotated", nrow(data))
-          reads <- rep(0, nrow(data))
-
-          df1 <- cbind(data[, 1:3], annotations, reads, data[, 7])
-          df2 <- cbind(data[, 4:6], annotations, reads, data[, 7])
-          colnames(df2) <- colnames(df1)
-
-          df <- rbind(data.frame(df1, index = 1:nrow(df1)), data.frame(df2, index = 1:nrow(df2)))
-          df <- df[order(df$index), ]
-          data <- df[, 1:6]
-          data$rownames <- 1:nrow(data)
-        } ## end if washU
-
-      ## Putting together in one line each interactions and duplicating them
-      new_data <- rbind(
-        cbind(data[seq(1, nrow(data), 2), ], data[seq(2, nrow(data), 2), ]),
-        cbind(data[seq(2, nrow(data), 2), ], data[seq(1, nrow(data), 2), ])
-      )
-
-      ## Ordering by the original line that came
-      new_data <- dplyr::as_tibble(new_data[order(as.numeric(rownames(new_data))), ],
-        .name_repair = "minimal"
-      )
-
-      colnames(new_data) <- c(
-        "chr_1", "start_1", "end_1", "bait_1", "R_1", "CS_1", "rownames1",
-        "chr_2", "start_2", "end_2", "bait_2", "R_2", "CS_2", "rownames2"
-      )
-    } # end non-peakmatrix
-
-    ## Here, could be real duplicated interactions, check with unique
-    new_data$bait_1 <- stringr::str_replace_all(new_data$bait_1, "\\|", ",")
-    new_data$bait_2 <- stringr::str_replace_all(new_data$bait_2, "\\|", ",")
-
-    ## After correcting the annotation the number of real duplicates increase
-
-    ## Removing real duplicates, if exist, in the file
-    new_data <- data.table::as.data.table(new_data)
-    new_data <- unique(new_data)
-
-    dup_real <- (nrow(data) - nrow(new_data)) / 2
-
-    ## Filtering those duplicated interactions with different CS, by the higher one
-    new_data <- new_data[, lapply(.SD, max), by = list(chr_1, start_1, end_1, chr_2, start_2, end_2)]
-    new_data <- new_data[order(new_data$rownames1), ]
-
-    dup_CS <- ((nrow(data) - nrow(new_data)) / 2) - dup_real
-
-    if (all.equal(new_data[, grep("CS_1.*", colnames(new_data), perl = T), with = F], new_data[, grep("CS_2.*", colnames(new_data)), with = F], check.attributes = F)) {
-      ## Keeping only one of the artificial inverted duplications
-      new_data <- dplyr::slice(new_data, seq(1, dplyr::n(), 2))
-      ## Removing interactions that involve the MT chromosome
-
-      message(paste0("\n", (nrow(data) / 2) - nrow(new_data)), " interactions removed\n\t- ", dup_real, " interactions were real duplicates\n\t- ", dup_CS, " interactions duplicated with different Chicago Score")
-
-      if (type == "peakmatrix") {
-        new_data <- new_data[, !colnames(new_data) %in% c("rownames1", "rownames2", "read_1", paste0("CS_1_ct", 1:length(cell_types))), with = F]
-        colnames(new_data)[11:ncol(new_data)] <- c("reads", cell_types)
-        new_data <- new_data[, c(
-          "chr_1", "start_1", "end_1", "bait_1", "ID_1",
-          "chr_2", "start_2", "end_2", "bait_2", "ID_2",
-          "reads", cell_types
-        ), with = F]
-        flip <- c(6:10, 1:5, 11:ncol(new_data))
-        new_data[new_data$bait_1 == ".", ] <- new_data[new_data$bait_1 == ".", ..flip]
-      } else {
-        new_data <- new_data[, !colnames(new_data) %in% c("rownames1", "rownames2", "R_1", "CS_1"), with = F]
-        colnames(new_data)[9:10] <- c("reads", "CS")
-        new_data <- new_data[, c(
-          "chr_1", "start_1", "end_1", "bait_1",
-          "chr_2", "start_2", "end_2", "bait_2",
-          "reads", "CS"
-        ), with = F]
-        flip <- c(5:8, 1:4, 9, 10)
-        new_data[new_data$bait_1 == ".", ] <- new_data[new_data$bait_1 == ".", ..flip]
-      }
+    new_datadd <- process_function(data)
 
       digest <- tryCatch(
         {
@@ -243,63 +47,302 @@ load_interactions <- function(file, washU_seqname = "chr", ...) {
         }
       )
 
-      digestGR <- GenomicRanges::makeGRangesFromDataFrame(digest$digest, keep.extra.columns = T)
+      gi <- generate_GInteractions(new_datadd, digest)
 
-      ## Creating the genomic interactions object
-
-      region1 <- GenomicRanges::makeGRangesFromDataFrame(new_data[, 1:(grep("chr_2", colnames(new_data)) - 1)], seqnames.field = "chr_1", start.field = "start_1", end.field = "end_1", keep.extra.columns = T, seqinfo = digest$seqinfo[GenomicRanges::seqnames(GenomeInfoDb::seqinfo(digestGR))])
-      region2 <- GenomicRanges::makeGRangesFromDataFrame(new_data[, grep("chr_2", colnames(new_data)):ncol(new_data)], seqnames.field = "chr_2", start.field = "start_2", end.field = "end_2", keep.extra.columns = T, seqinfo = digest$seqinfo[GenomicRanges::seqnames(GenomeInfoDb::seqinfo(digestGR))])
-
-      ID1 <- GenomicRanges::findOverlaps(region1, digestGR)
-      ID2 <- GenomicRanges::findOverlaps(region2, digestGR)
-
-      if (length(ID1) == 0 | length(ID2) == 0) {
-        stop("No fragment found in digest.\nMaybe the genome version is not correct")
-      }
-      if (length(unique(region1)) != length(unique(S4Vectors::subjectHits(ID1))) | length(unique(region2)) != length(unique(S4Vectors::subjectHits(ID2)))) {
-        stop("Digest does not perfectly match with fragments in data.\n Some fragments from digest overlap more than one fragment of your data, or viceversa")
-      }
-
-      region1$ID_1 <- digestGR$fragment_ID[S4Vectors::subjectHits(ID1)]
-      region2$ID_2 <- digestGR$fragment_ID[S4Vectors::subjectHits(ID2)]
-
-      cols <- names(GenomicRanges::mcols(region2))
-      order <- c(grep("bait_2", cols), grep("ID_2", cols), grep("bait_2|ID_2", cols, invert = T))
-      S4Vectors::elementMetadata(region2) <- S4Vectors::elementMetadata(region2)[, order]
-      # GenomicRanges::mcols(region2) <- GenomicRanges::mcols(region2)
-
-      gi <- GenomicInteractions::GenomicInteractions(region1, region2)
-
-      names(GenomicRanges::mcols(gi)) <- gsub(x = names(GenomicRanges::mcols(gi)), pattern = "anchor[1-2]\\.", "")
-
-      ## Annotating regions with P, OE or uce
-      gi <- annotate_BOE(gi)
-
-      ## Sorting interactions P_P
-      cond <- ((gi$ID_1 > gi$ID_2) & gi$int == "B_B") | ((gi$ID_1 < gi$ID_2) & gi$int == "OE_B")
-
-      a1 <- gi@anchor1[cond]
-      a2 <- gi@anchor2[cond]
-
-      gi@anchor1[cond] <- a2
-      gi@anchor2[cond] <- a1
-
-
-      cols <- sort(grep("_", colnames(S4Vectors::elementMetadata(gi[cond]))[1:4], value = T))
-      S4Vectors::elementMetadata(gi[cond])[cols] <- S4Vectors::elementMetadata(gi[cond])[cols[c(rbind(seq(2, length(cols), 2), seq(1, length(cols), 2)))]]
-
-      # gi@elementMetadata <- gi@elementMetadata[,-which(colnames(gi@elementMetadata) %in% c("counts"))]
-
-      final <- HiCaptuRe(genomicInteractions = gi, parameters = list(digest = digest$parameters, load = c(file = normalizePath(file), type = type)), ByBaits = list(), ByRegions = list())
+      final <- HiCaptuRe(genomicInteractions = gi, parameters = list(digest = digest$parameters, load = c(file = normalizePath(file), format = format)), ByBaits = list(), ByRegions = list())
       final$distance <- GenomicInteractions::calculateDistances(final)
 
       final <- final[order(final$ID_1, final$ID_2)]
 
       return(final)
-    } else {
-      (
-        stop("Loading Interactions file error")
-      )
+}
+
+
+detect_format <- function(data)
+{
+  if (ncol(data) > 11)
+  {
+    peakmatrix_columns <- c(
+      "baitChr", "baitStart", "baitEnd", "baitID", "baitName",
+      "oeChr", "oeStart", "oeEnd", "oeID", "oeName",
+      "dist")
+    if (all(peakmatrix_columns == (colnames(data)[1:11])))
+    {
+      format <- "peakmatrix"
+    }else
+    {
+      stop(paste("File has the number of columns of a peakmatrix file but not the correct columns names. Peakmatrix files col.names should be:",paste(peakmatrix_columns,collapse = " ")))
+    }
+  } else if(ncol(data) == 10)
+  {
+    ibed_columns <- c(
+      "bait_chr", "bait_start", "bait_end", "bait_name",
+      "otherEnd_chr", "otherEnd_start", "otherEnd_end", "otherEnd_name",
+      "N_reads", "score"
+    )
+    if (all(colnames(data) == ibed_columns))
+    {
+      format <- "ibed"
+    } else if (all(colnames(data) == paste0("V",1:10)))
+    {
+      format <- "bedpe"
+    } else
+    {
+      stop(paste("File has the number of columns of an ibed file or a bedpe file but not the correct columns names. Bedpe files should not have header, and ibed files col.names should be:",paste(ibed_columns,collapse = " ")))
+    }
+  } else if (ncol(data) == 6)
+  {
+    if (all(colnames(data) == paste0("V",1:6)))
+    {
+      format <- "seqmonk"
+    }else
+    {
+      stop("File has the number of columns of a seqmonk file but should not have header")
+    }
+  } else if (ncol(data) %in% 3:4)
+  {
+    if (!grepl(":", data[1, 1]))
+    {
+      format <- "washU"
+    } else if (grepl(":", data[1, 1]))
+    {
+      format <- "washU_old"
+    } else
+    {
+      stop("File has the number of columns of a washU file but not the proper format")
     }
   }
+  return(format)
 }
+
+deduplicate_interactions <- function(new_data)
+{
+  check1 <- unique(new_data[,c("chr_1", "start_1", "end_1","chr_2", "start_2", "end_2")])
+  check2 <- unique(new_data[,c("chr_1", "start_1", "end_1","bait_1","chr_2", "start_2", "end_2","bait_2")])
+
+  if (nrow(check1) != nrow(check2))
+  {
+    warning("There are fragments with the same coordinates but different annotations. Use annotate_interactions() to properly annotate")
+  }
+  ## Removing real duplicates, if exist, in the file
+  new_data <- unique(new_data)
+
+  # dup_real <- (nrow(data) - nrow(new_data)) / 2
+
+  ## Filtering those duplicated interactions with different CS, by the higher one
+  new_data <- new_data[, lapply(.SD, max), by = list(chr_1, start_1, end_1, chr_2, start_2, end_2)]
+  new_data <- new_data[order(new_data$rownames1), ]
+
+  if (all.equal(new_data[, grep("CS_1.*", colnames(new_data), perl = T), with = F], new_data[, grep("CS_2.*", colnames(new_data)), with = F], check.attributes = F))
+  {
+    ## Keeping only one of the artificial inverted duplications
+    new_data <- dplyr::slice(new_data, seq(1, dplyr::n(), 2))
+    return(new_data)
+  } else
+  {
+    stop("Problem deduplicating interactions")
+  }
+}
+
+
+process_peakmatrix <- function(data)
+{
+  data <- data[, !grepl("dist|baitID|oeID", colnames(data)), with = F]
+  score_names <- paste0("CS_", colnames(data)[9:(ncol(data))])
+
+  reads <- rep(0, nrow(data))
+  warning("reads column set to 0 because peakmatrix format does not contain this info")
+  data <- cbind(data[,1:8],reads,data[,9:ncol(data), with = F])
+
+  data <- formating_data(data)
+  new_datadd <- process_data(data,score_names)
+  return(new_datadd)
+}
+
+process_bedpe <- function(data)
+{
+  annotations <- rep("non-annotated", nrow(data))
+  reads <- rep(0, nrow(data))
+  warning("reads column set to 0 and annotation set to 'non-annotated' because bedpe format does not contain this info")
+  data <- cbind(data[,1:3],annotations,data[,4:6],annotations,reads,data[,8])
+
+  score_names <- "CS"
+  data <- formating_data(data)
+  new_datadd <- process_data(data,score_names)
+  return(new_datadd)
+
+}
+
+process_ibed <- function(data)
+{
+  score_names <- "CS"
+  data <- formating_data(data)
+  new_datadd <- process_data(data,score_names)
+  return(new_datadd)
+}
+
+process_seqmonk <- function(data)
+{
+  new_datadd <- process_data(data,score_names)
+
+  data$rownames <- 1:nrow(data)
+}
+
+process_washU <- function(data)
+{
+  data <- tidyr::separate(data, 4,
+                          into = c("a", "b"), sep = ":", remove = TRUE,
+                          convert = FALSE, extra = "warn", fill = "warn"
+  ) %>%
+    tidyr::separate(5,
+                    into = c("b", "c"), sep = "-", remove = TRUE,
+                    convert = FALSE, extra = "warn", fill = "warn"
+    ) %>%
+    tidyr::separate(6,
+                    into = c("c", "d"), sep = ",", remove = TRUE,
+                    convert = FALSE, extra = "warn", fill = "warn"
+    )
+
+  annotations <- rep("non-annotated", nrow(data))
+  reads <- rep(0, nrow(data))
+
+  warning("reads column set to 0 and annotation set to 'non-annotated' because washU format does not contain this info")
+  data <- cbind(data[,1:3],annotations,data[,4:6],annotations,reads,data[,7])
+
+  score_names <- "CS"
+  data <- formating_data(data.table::as.data.table(data))
+  new_datadd <- process_data(data,score_names)
+  return(new_datadd)
+}
+
+
+process_washUold <- function(data)
+{
+  data <- tidyr::separate(data, 1,
+                          into = c("a", "b"), sep = ":", remove = TRUE,
+                          convert = FALSE, extra = "warn", fill = "warn"
+  ) %>%
+    tidyr::separate(2,
+                    into = c("b", "c"), sep = ",", remove = TRUE,
+                    convert = FALSE, extra = "warn", fill = "warn"
+    ) %>%
+    tidyr::separate(4,
+                    into = c("d", "e"), sep = ":", remove = TRUE,
+                    convert = FALSE, extra = "warn", fill = "warn"
+    ) %>%
+    tidyr::separate(5,
+                    into = c("e", "f"), sep = ",", remove = TRUE,
+                    convert = FALSE, extra = "warn", fill = "warn"
+    )
+
+  annotations <- rep("non-annotated", nrow(data))
+  reads <- rep(0, nrow(data))
+
+  warning("reads column set to 0 and annotation set to 'non-annotated' because washU format does not contain this info")
+  data <- cbind(data[,1:3],annotations,data[,4:6],annotations,reads,data[,7])
+
+  score_names <- "CS"
+  data <- formating_data(data.table::as.data.table(data))
+  new_datadd <- process_data(data,score_names)
+  return(new_datadd)
+}
+
+formating_data <- function(data)
+{
+  df1 <- data[, c(1:4, 9:ncol(data)), with = F]
+  df2 <- data[, c(5:ncol(data)), with = F]
+  colnames(df2) <- colnames(df1)
+
+  df <- rbind(data.table::data.table(df1, index = 1:nrow(df1)), data.table::data.table(df2, index = 1:nrow(df2)))
+
+  df <- df[order(df$index), ]
+  data <- df[, !grepl("index", colnames(df)), with = F]
+  return(data)
+}
+
+process_data <- function(data, score_names)
+{
+  data$rownames <- 1:nrow(data)
+
+  ## Putting together in one line each interactions and duplicating them
+  new_data <- rbind(
+    cbind(data[seq(1, nrow(data), 2), ], data[seq(2, nrow(data), 2), ]),
+    cbind(data[seq(2, nrow(data), 2), ], data[seq(1, nrow(data), 2), ])
+  )
+
+  ## Ordering by the original line that came
+  new_data <- new_data[order(new_data$rownames),]
+  colnames(new_data) <- c(
+    "chr_1", "start_1", "end_1", "bait_1", "read_1", paste0("CS_1_ct", 1:length(score_names)), "rownames1",
+    "chr_2", "start_2", "end_2", "bait_2", "read_2", paste0("CS_2_ct", 1:length(score_names)), "rownames2"
+  )
+
+  new_datadd <- deduplicate_interactions(new_data)
+
+  new_datadd <- new_datadd[, !colnames(new_datadd) %in% c("rownames1", "rownames2", "read_1", paste0("CS_1_ct", 1:length(score_names))), with = F]
+  colnames(new_datadd)[9:ncol(new_datadd)] <- c("reads", score_names)
+  new_datadd <- new_datadd[, c(
+    "chr_1", "start_1", "end_1", "bait_1",
+    "chr_2", "start_2", "end_2", "bait_2",
+    "reads", score_names
+  ), with = F]
+  flip <- c(5:8, 1:4, 9:ncol(new_datadd))
+  new_datadd[new_datadd$bait_1 == ".", ] <- new_datadd[new_datadd$bait_1 == ".", ..flip]
+return(new_datadd)
+}
+
+
+generate_GInteractions <- function(new_datadd,digest)
+{
+  seqnames_data <- unique(c(new_datadd$chr_1,new_datadd$chr_2))
+  seqnames_digest <- GenomicRanges::seqnames(digest$seqinfo)
+
+  if (!all(seqnames_data %in% seqnames_digest))
+  {
+    stop(paste("Some chromosomes from data are not present in the digest genome. Missing chromosomes:",paste(seqnames_data[!seqnames_data %in% seqnames_digest],collapse = ", "),". Check digest_genome() arguments."))
+  }
+
+  digestGR <- GenomicRanges::makeGRangesFromDataFrame(digest$digest, keep.extra.columns = T)
+
+  region1 <- GenomicRanges::makeGRangesFromDataFrame(new_datadd[, 1:4], seqnames.field = "chr_1", start.field = "start_1", end.field = "end_1", keep.extra.columns = T, seqinfo = digest$seqinfo)
+  region2 <- GenomicRanges::makeGRangesFromDataFrame(new_datadd[, 5:ncol(new_datadd)], seqnames.field = "chr_2", start.field = "start_2", end.field = "end_2", keep.extra.columns = T, seqinfo = digest$seqinfo)
+
+  ID1 <- GenomicRanges::findOverlaps(region1, digestGR)
+  ID2 <- GenomicRanges::findOverlaps(region2, digestGR)
+
+  if (length(ID1) == 0 | length(ID2) == 0) {
+    stop("No fragment found in digest.\nMaybe the genome version is not correct")
+  }
+  if (length(unique(region1)) != length(unique(S4Vectors::subjectHits(ID1))) | length(unique(region2)) != length(unique(S4Vectors::subjectHits(ID2)))) {
+    stop("Digest does not perfectly match with fragments in data. Some fragments from digest overlap more than one fragment in data, or viceversa. Check digest_genome() arguments.")
+  }
+
+  region1$ID_1 <- digestGR$fragment_ID[S4Vectors::subjectHits(ID1)]
+  region2$ID_2 <- digestGR$fragment_ID[S4Vectors::subjectHits(ID2)]
+
+  cols <- names(GenomicRanges::mcols(region2))
+  order <- c(grep("bait_2", cols), grep("ID_2", cols), grep("bait_2|ID_2", cols, invert = T))
+  S4Vectors::elementMetadata(region2) <- S4Vectors::elementMetadata(region2)[, order]
+
+  gi <- GenomicInteractions::GenomicInteractions(region1, region2)
+
+  names(GenomicRanges::mcols(gi)) <- gsub(x = names(GenomicRanges::mcols(gi)), pattern = "anchor[1-2]\\.", "")
+
+  ## Annotating regions with P, OE or uce
+  gi <- annotate_BOE(gi)
+
+  ## Sorting interactions P_P
+  cond <- ((gi$ID_1 > gi$ID_2) & gi$int == "B_B") | ((gi$ID_1 < gi$ID_2) & gi$int == "OE_B")
+
+  a1 <- gi@anchor1[cond]
+  a2 <- gi@anchor2[cond]
+
+  gi@anchor1[cond] <- a2
+  gi@anchor2[cond] <- a1
+
+  cols <- sort(grep("_", colnames(S4Vectors::elementMetadata(gi[cond]))[1:4], value = T))
+  S4Vectors::elementMetadata(gi[cond])[cols] <- S4Vectors::elementMetadata(gi[cond])[cols[c(rbind(seq(2, length(cols), 2), seq(1, length(cols), 2)))]]
+
+  return(gi)
+}
+
