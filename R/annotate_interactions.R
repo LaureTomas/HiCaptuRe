@@ -90,10 +90,10 @@ annotate_BOE <- function(interactions) {
   a2$bait_1 <- S4Vectors::elementMetadata(interactions)[, "bait_2"]
 
   a2$bait_1[is.na(a2$bait_1)] <- "."
+  a1$bait_1[is.na(a1$bait_1) | a1$bait_1 == "."] <- "non-annotated"
 
   regions <- unique(c(a1, a2))
 
-  regions$bait_1[is.na(regions$bait_1)] <- "non-annotated"
   bait <- regions[(regions$bait_1 != ".")]
   oe <- regions[regions$bait_1 == "."]
 
