@@ -168,8 +168,6 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
       S4Vectors::elementMetadata(byregions) <- cbind(S4Vectors::elementMetadata(byregions), data.frame(Nfragment = NA, NOE = NA, fragmentID = NA, fragmentAnnot = NA))
     } ## end if/else length == != 0
   } ## end else invert F
-
-
   # updating slots
 
   ByRegions_list <- getByRegions(interactions_regions)

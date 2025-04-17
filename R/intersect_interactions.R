@@ -1,16 +1,17 @@
 #' Computes the intersect between a list of interactions objects
 #'
-#' This function computes all the possible intersects for a given list of GenomicInteractions objects
+#' This function computes all the possible intersects for a given list of HiCaptuRe objects
 #'
-#' @param interactions_list list of GenomicInteractions objects from \code{\link{load_interactions}}
+#' @param interactions_list list of HiCaptuRe objects from \code{\link{load_interactions}}
 #' @param distance.boxplot logical, by default FALSE, plot a boxplot of log10 distance of each intersection in the upset plot
 #' @param ... extra arguments for UpSetR
 #'
-#' @return list with 3 elements:
-#' 1. 'upset_plot'  an upset plot of the intersections
-#' 2. 'venn' a venn diagram of the intersections
-#' 3. 'intersections' a list of GenomicInteractions objects for all the intersections
-#'
+#' @return A list with:
+#' \describe{
+#'   \item{intersections}{A named list of intersected HiCaptuRe objects}
+#'   \item{upset}{An UpSetR plot}
+#'   \item{venn}{A ggVennDiagram plot (NULL if > 7 sets)}
+#' }
 #' @importFrom dplyr as_tibble
 #' @importFrom stringr str_split
 #' @importFrom GenomicInteractions GenomicInteractions
@@ -30,7 +31,24 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
 
   if (!are_identical)
   {
-    stop("HiCaptuRe objects in the interactions_list have different digest genome")
+    stop("HiCaptuRe objects in the interactions_list have different digest genome. Check load_interactions() and digest_genome() arguments.")
+  }
+
+  check_annot <- lapply(interactions_list, function(x) {
+    as_tibble(elementMetadata(x@regions)) %>% mutate(name = coalesce(unlist(B.id),unlist(OE.id))) %>%
+      select(node.class,fragmentID,name) %>% unique()
+  })
+  check_annot <- do.call(rbind,check_annot) %>% unique()
+
+  check_annot2 <- check_annot %>% select(-name) %>% unique() %>% group_by(fragmentID) %>% reframe(n=n())
+  if (any(check_annot2$n > 1))
+  {
+    stop("HiCaptuRe objects in the interactions_list contain fragments with different B/OE classification. Check annotate_interactions().")
+  }
+  check_annot3 <- check_annot %>% unique() %>% group_by(fragmentID) %>% reframe(n=n())
+  if (any(check_annot3$n > 1))
+  {
+    warning("HiCaptuRe objects in the interactions_list contain fragments with different annotation. Check annotate_interactions().")
   }
 
   original <- names(interactions_list)
@@ -39,32 +57,18 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
   interactions_list <- interactions_list[new_order]
 
   la <- list()
-  if (distance.boxplot)
-  {
-    steps <- length(interactions_list)+length(interactions_list)^2 + 1
-  }
-  if (!distance.boxplot)
-  {
-    steps <- length(interactions_list)+length(interactions_list)^2
-  }
-  p <- progressr::progressor(steps = steps)
 
   if(distance.boxplot)
   {
-
     for (i in 1:length(interactions_list))
     {
-      p(sprintf("Preparing"))
-      a <- interactions_list[[i]]
-      aa <- paste(interactions_list[[i]]$ID_1,interactions_list[[i]]$ID_2,sep = "_")
-      names(aa) <- a$distance
+      aa <- paste(S4Vectors::elementMetadata(interactions_list[[i]])[["ID_1"]],S4Vectors::elementMetadata(interactions_list[[i]])[["ID_2"]],sep = "_")
+      names(aa) <- S4Vectors::elementMetadata(interactions_list[[i]])[["distance"]]
       la[[names(interactions_list)[i]]] <- aa
     }
 
     ## Based on the function FromList from UpSetR package
     ## Generate a dataframe with the intersection and the distance of each interaction
-    p(sprintf("Boxplot"))
-
     elements1 <- unlist(la,use.names = T)
     names(elements1) <- gsub("\\.","",gsub(paste0(names(la),collapse = "|"),"",names(elements1)))
     elements <- unique(elements1)
@@ -83,23 +87,19 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     colnames(data_final)[ncol(data_final)] <- "distance"
     data_final$log10dist <- log10(data_final$distance)
 
-    p(sprintf("Upset"))
     uplot <- suppressWarnings(UpSetR::upset(data_final, nsets = length(interactions_list),boxplot.summary = "log10dist",mainbar.y.label = "# Interactions",sets.x.label = "# Interactions", ...))
   }
   else
   {
     for (i in 1:length(interactions_list))
     {
-      p(sprintf("Preparing"))
-      aa <- paste(interactions_list[[i]]$ID_1,interactions_list[[i]]$ID_2,sep = "_")
+      aa <- paste(S4Vectors::elementMetadata(interactions_list[[i]])[["ID_1"]],S4Vectors::elementMetadata(interactions_list[[i]])[["ID_2"]],sep = "_")
       la[[names(interactions_list)[i]]] <- aa
     }
 
-    p(sprintf("Upset"))
     uplot <- suppressWarnings(UpSetR::upset(UpSetR::fromList(la), nsets = length(interactions_list),mainbar.y.label = "# Interactions",sets.x.label = "# Interactions",...))
   }
 
-  p(sprintf("Venn"))
   venn_plot <- gplots::venn(la,show.plot = F)
 
   if (length(la) < 8)
@@ -109,12 +109,10 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
     ggvenn <- NULL
   }
 
-  p(sprintf("Intersections"))
   int <- attr(venn_plot,"intersections")
 
   for (i in 1:length(int))
   {
-    p(sprintf("Intersections to HiCaptuRe"))
     int_name <- stringr::str_split(names(int[i]),":")[[1]]
 
     for (j in 1:length(int_name))
@@ -123,7 +121,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
 
       if (j == 1)
       {
-        m <- match(int[[i]],paste(interactions_list[[sample]]$ID_1,interactions_list[[sample]]$ID_2,sep = "_"))
+        m <- match(int[[i]],paste(S4Vectors::elementMetadata(interactions_list[[sample]])[["ID_1"]],S4Vectors::elementMetadata(interactions_list[[sample]])[["ID_2"]],sep = "_"))
         ints <- interactions_list[[sample]][m]
 
         cols <- names(GenomicRanges::mcols(ints))
@@ -137,7 +135,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot=F,...)
 
       } else
       {
-        m <- match(int[[i]],paste(interactions_list[[sample]]$ID_1,interactions_list[[sample]]$ID_2,sep = "_"))
+        m <- match(int[[i]],paste(S4Vectors::elementMetadata(interactions_list[[sample]])[["ID_1"]],S4Vectors::elementMetadata(interactions_list[[sample]])[["ID_2"]],sep = "_"))
         ints2 <- interactions_list[[sample]][m]
 
         CS <-  grep("CS.*",names(GenomicRanges::mcols(ints2)))
