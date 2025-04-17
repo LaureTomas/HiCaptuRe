@@ -22,16 +22,14 @@
 #' @export
 interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=NULL, invert=F)
 {
-  S4Vectors::elementMetadata(interactions) <- S4Vectors::elementMetadata(interactions)[,1:grep("distance",colnames(S4Vectors::elementMetadata(interactions)))]
   ## Setting pipe operator from magrittr package
   `%>%` <- magrittr::`%>%`
 
-  if (inherits(regions,what = "GRanges"))
+  if (is(regions,"GRanges"))
   {
     regions_name <- deparse(substitute(regions))
     regionsGR <- regions
-  }
-  if (inherits(regions,what = "character"))
+  } else if (is(regions,"character"))
   {
     regions_name <- regions
 
@@ -40,26 +38,26 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
     {
       regions_df <- data.table::fread(regions, header=T)
       regionsGR <- GenomicRanges::makeGRangesFromDataFrame(regions_df, seqnames.field = chr, start.field = start, end.field = end, keep.extra.columns = T)
-    }
-    if(is.null(chr) & is.null(start) & is.null(end)) ## If the file has not header
+    } else if(is.null(chr) & is.null(start) & is.null(end)) ## If the file has not header
     {
       chr="V1"
       start="V2"
       end="V3"
       regions_df <- data.table::fread(regions)
       regionsGR <- GenomicRanges::makeGRangesFromDataFrame(regions_df, seqnames.field = chr, start.field = start, end.field = end, keep.extra.columns = T)
-    }
-    else ## Message if the arguments are no correctly filled
+    } else ## Message if the arguments are no correctly filled
     {
-      stop("chr, start, end must be all filled if regions have header")
+      stop("chr, start, end arguments must be all filled if regions file has a header")
     }
+  } else
+  {
+    stop("`regions` must be either a GRanges object or a character path to a BED-like file.")
   }
   regionsGR$regionID <- 1:length(regionsGR)
 
   if (invert)
   {
     interactions_regions <- unique(IRanges::subsetByOverlaps(interactions, regionsGR, invert = invert))
-    message(paste("Integration with regions results in",length(interactions_regions),"interactions that do not overlap with any given region"))
 
     if (length(interactions_regions) != length(interactions))
     {
@@ -94,12 +92,11 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
   {
     ## Subseting ibed by overlap with regions
     interactions_regions <- unique(IRanges::subsetByOverlaps(interactions, regionsGR, invert = invert))
-    message(paste("Integration with regions results in",length(interactions_regions),"interactions"))
 
     if (length(interactions_regions) != 0)
     {
       anchor1 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorOne(interactions),regionsGR)))
-      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1[,1],anchor1$regionsGR)))
+      anchor1$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor1[,1],anchor1[,"regionsGR"])))
       if (nrow(anchor1) != 0)
       {
         anchor1$B.id <- unlist(anchor1$B.id)
@@ -116,7 +113,7 @@ interactionsByRegions <- function(interactions,regions,chr=NULL,start=NULL,end=N
 
 
       anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorTwo(interactions),regionsGR)))
-      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2[,1],anchor2$regionsGR)))
+      anchor2$intersect <- suppressWarnings(S4Vectors::width(IRanges::pintersect(anchor2[,1],anchor2[,"regionsGR"])))
       if (nrow(anchor2) != 0)
       {
         anchor2$B.id <- unlist(anchor2$B.id)
