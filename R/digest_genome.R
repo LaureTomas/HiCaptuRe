@@ -117,7 +117,7 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
 
     # Mask PAR regions, if needed
     if (PAR_mask) {
-      if(chr %in% seqnames(PARGR))
+      if(chr %in% GenomeInfoDb::seqnames(PARGR))
       {
       chr_PAR <- IRanges::subsetByOverlaps(PARGR, GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq))))
       if (length(chr_PAR) > 0) {
