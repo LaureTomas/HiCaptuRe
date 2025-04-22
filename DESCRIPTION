@@ -1,7 +1,7 @@
 Package: HiCaptuRe
 Type: Package
 Title: In-house R package for Capture Hi-C data handling
-Version: 0.10.2
+Version: 0.10.3
 Authors@R: c(person("Laureano Tomas-Daza", role = c("aut", "cre"),
                      email = "ltomas@carrerasresearch.org"))
 Description: Package for dealing with liCHi-C data in Javierre Lab.
