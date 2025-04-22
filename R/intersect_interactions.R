@@ -12,7 +12,7 @@
 #'   \item{upset}{An UpSetR plot}
 #'   \item{venn}{A ggVennDiagram plot (NULL if > 7 sets)}
 #' }
-#' @importFrom dplyr as_tibble
+#' @importFrom dplyr as_tibble coalesce reframe select group_by
 #' @importFrom stringr str_split
 #' @importFrom GenomicInteractions GenomicInteractions
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
@@ -33,24 +33,24 @@ intersect_interactions <- function(interactions_list, distance.boxplot = F, ...)
 
   check_annot <- lapply(interactions_list, function(x) {
     as_tibble(elementMetadata(x@regions)) %>%
-      mutate(name = coalesce(unlist(B.id), unlist(OE.id))) %>%
+      mutate(name = dplyr::coalesce(unlist(B.id), unlist(OE.id))) %>%
       select(node.class, fragmentID, name) %>%
       unique()
   })
   check_annot <- do.call(rbind, check_annot) %>% unique()
 
   check_annot2 <- check_annot %>%
-    select(-name) %>%
+    dplyr::select(-name) %>%
     unique() %>%
-    group_by(fragmentID) %>%
-    reframe(n = n())
+    dplyr::group_by(fragmentID) %>%
+    dplyr::reframe(n = n())
   if (any(check_annot2$n > 1)) {
     stop("HiCaptuRe objects in the interactions_list contain fragments with different B/OE classification. Check annotate_interactions().")
   }
   check_annot3 <- check_annot %>%
     unique() %>%
-    group_by(fragmentID) %>%
-    reframe(n = n())
+    dplyr::group_by(fragmentID) %>%
+    dplyr::reframe(n = n())
   if (any(check_annot3$n > 1)) {
     warning("HiCaptuRe objects in the interactions_list contain fragments with different annotation. Check annotate_interactions().")
   }
