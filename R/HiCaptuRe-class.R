@@ -11,6 +11,7 @@
 #' @note This class contains a \link[GenomicInteractions]{GenomicInteractions} object inside therefore all methods available to it can be used. This type of object should be created through the function \link[HiCaptuRe]{load_interactions}
 #'
 #' @importFrom methods new
+#' @importFrom S4Vectors elementMetadata
 #'
 #' @exportClass HiCaptuRe
 setClass("HiCaptuRe",
@@ -23,7 +24,7 @@ setClass("HiCaptuRe",
 )
 
 setValidity("HiCaptuRe", function(object) {
-  if (!(all(c("bait_1", "bait_2", "ID_1", "ID_2") %in% names(object@elementMetadata)))) {
+  if (!(all(c("bait_1", "bait_2", "ID_1", "ID_2") %in% names(S4Vectors::elementMetadata(object))))) {
     stop("Valid HiCaptuRe object must contain bait_1, bait_2, ID_1, ID_2 columns")
   }
   return(TRUE)
@@ -34,57 +35,61 @@ setGeneric("HiCaptuRe", function(genomicInteractions, parameters, ByBaits, ByReg
 })
 
 setMethod("HiCaptuRe", c("GenomicInteractions", "list", "list", "list"), function(genomicInteractions, parameters, ByBaits, ByRegions) {
+  if (!inherits(genomicInteractions, "GenomicInteractions")) {
+    stop("First argument must be a GenomicInteractions object")
+  }
   new("HiCaptuRe", genomicInteractions, parameters = parameters, ByBaits = ByBaits, ByRegions = ByRegions)
 })
 
-setGeneric("getParameters", function(x) {
-  standardGeneric("getParameters")
-})
+setMethod("show", "HiCaptuRe", function(object) {
+  callNextMethod()  # call inherited show from GInteractions
 
-setMethod("getParameters", c(x = "HiCaptuRe"), function(x) {
-  return(x@parameters)
-})
+  cat("\n📦 Slots in HiCaptuRe object:\n")
+  slots <- slotNames(object)[1:3]
+  for (s in slots) {
+    slot_value <- slot(object, s)
 
-setGeneric("setParameters", function(x, y) {
-  standardGeneric("setParameters")
-})
+    if (tolower(s) == "parameters" && is.list(slot_value)) {
+      param_names <- names(slot_value)
+      cat(sprintf("  • @%s(%d)       : %s\n", s, length(param_names), paste(param_names, collapse = ", ")))
+    } else if (tolower(s) == "bybaits" && is.list(slot_value)) {
+      if (length(slot_value)==0) {
+        cat("  • @ByBaits(0)          : NULL\n")
+      } else{
+        # Gather bait counts for all tibbles
+        details <- vapply(seq_along(slot_value), function(i) {
+          df <- slot_value[[i]]
+          if (tibble::is_tibble(df)) {
+            sprintf("[[%d]] %d baits", i, nrow(df))
+          } else {
+            sprintf("[[%d]] not a tibble", i)
+          }
+        }, character(1))
 
-setMethod("setParameters", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-  x@parameters <- y
-  return(x)
-})
+        cat(sprintf("  • @ByBaits(%d)          : %s\n", length(slot_value), paste(details, collapse = "; ")))
+      }
 
-setGeneric("getByBaits", function(x) {
-  standardGeneric("getByBaits")
-})
+    } else if (tolower(s) == "byregions" && is.list(slot_value)) {
+      if (length(slot_value)==0) {
+        cat("  • @ByRegions(0)        : NULL\n")
+      } else{
+        # Gather range counts for all GRanges
+        details <- vapply(seq_along(slot_value), function(i) {
+          gr <- slot_value[[i]]
+          if (inherits(gr, "GRanges")) {
+            sprintf("[[%d]] %d regions", i, length(gr))
+          } else {
+            sprintf("[[%d]] not a GRanges", i)
+          }
+        }, character(1))
 
-setMethod("getByBaits", c(x = "HiCaptuRe"), function(x) {
-  return(x@ByBaits)
-})
-
-setGeneric("setByBaits", function(x, y) {
-  standardGeneric("setByBaits")
-})
-
-setMethod("setByBaits", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-  x@ByBaits <- y
-  return(x)
-})
-
-
-setGeneric("getByRegions", function(x) {
-  standardGeneric("getByRegions")
-})
-
-setMethod("getByRegions", c(x = "HiCaptuRe"), function(x) {
-  return(x@ByRegions)
-})
-
-setGeneric("setByRegions", function(x, y) {
-  standardGeneric("setByRegions")
-})
-
-setMethod("setByRegions", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-  x@ByRegions <- y
-  return(x)
+        cat(sprintf("  • @ByRegions(%d)        : %s\n", length(slot_value), paste(details, collapse = "; ")))
+      }
+    } else {
+      # Default: try to show length or class
+      len <- tryCatch(length(slot_value), error = function(e) NA)
+      cat(sprintf("  • @%-15s : %s\n", s,
+                  if (!is.na(len)) paste0("length = ", len) else paste("class =", class(slot_value)[1])))
+    }
+  }
 })
