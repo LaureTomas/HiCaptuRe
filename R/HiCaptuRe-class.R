@@ -10,7 +10,7 @@
 #'
 #' @note This class contains a \link[GenomicInteractions]{GenomicInteractions} object inside therefore all methods available to it can be used. This type of object should be created through the function \link[HiCaptuRe]{load_interactions}
 #'
-#' @importFrom methods new
+#' @importFrom methods new callNextMethod slot slotNames
 #' @importFrom S4Vectors elementMetadata
 #'
 #' @exportClass HiCaptuRe
@@ -43,8 +43,9 @@ setMethod("HiCaptuRe", c("GenomicInteractions", "list", "list", "list"), functio
 
 setMethod("show", "HiCaptuRe", function(object) {
   callNextMethod()  # call inherited show from GInteractions
+  show_emoji <- l10n_info()$`UTF-8` && !isTRUE(getOption("HiCaptuRe.no_emoji"))
 
-  cat("\n📦 Slots in HiCaptuRe object:\n")
+  cat("\n", if (show_emoji) "📦 " else "[", "Slots in HiCaptuRe object", if (!show_emoji) "]", ":\n", sep = "")
   slots <- slotNames(object)[1:3]
   for (s in slots) {
     slot_value <- slot(object, s)

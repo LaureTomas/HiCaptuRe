@@ -9,7 +9,9 @@
 #'
 #' @return A HiCaptuRe object
 #'
+
 #' @rdname setters
+#' @aliases setParameters
 #' @export
 setGeneric("setParameters", function(x, y) {
   standardGeneric("setParameters")
@@ -21,6 +23,7 @@ setMethod("setParameters", c(x = "HiCaptuRe", y = "list"), function(x, y) {
   return(x)
 })
 #' @rdname setters
+#' @aliases setByBaits
 #' @export
 setGeneric("setByBaits", function(x, y) {
   standardGeneric("setByBaits")
@@ -32,6 +35,7 @@ setMethod("setByBaits", c(x = "HiCaptuRe", y = "list"), function(x, y) {
   return(x)
 })
 #' @rdname setters
+#' @aliases setByRegions
 #' @export
 setGeneric("setByRegions", function(x, y) {
   standardGeneric("setByRegions")

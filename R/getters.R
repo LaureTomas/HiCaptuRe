@@ -10,8 +10,10 @@
 #' @return For 'getParameters', a named list of named vectors. For 'getByBaits', a list
 #' of tibbles with bait-centric information. For 'getByRegions', a list of GRanges with
 #' regions-centric information.
-#'
+
+
 #' @rdname getters
+#' @aliases getParameters
 #' @export
 setGeneric("getParameters", function(x) {
   standardGeneric("getParameters")
@@ -22,6 +24,7 @@ setMethod("getParameters", c(x = "HiCaptuRe"), function(x) {
   return(x@parameters)
 })
 #' @rdname getters
+#' @aliases getByBaits
 #' @export
 setGeneric("getByBaits", function(x) {
   standardGeneric("getByBaits")
@@ -32,6 +35,7 @@ setMethod("getByBaits", c(x = "HiCaptuRe"), function(x) {
   return(x@ByBaits)
 })
 #' @rdname getters
+#' @aliases getByRegions
 #' @export
 setGeneric("getByRegions", function(x) {
   standardGeneric("getByRegions")
@@ -40,14 +44,4 @@ setGeneric("getByRegions", function(x) {
 #' @export
 setMethod("getByRegions", c(x = "HiCaptuRe"), function(x) {
   return(x@ByRegions)
-})
-#' @rdname getters
-#' @export
-setGeneric("getRegions", function(x) {
-  standardGeneric("getRegions")
-})
-#' @rdname getters
-#' @export
-setMethod("getRegions", c(x = "HiCaptuRe"), function(x) {
-  return(x@regions)
 })
