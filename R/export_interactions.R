@@ -16,6 +16,7 @@
 #' @importFrom data.table fwrite
 #' @importFrom igraph simplify as_edgelist
 #' @importFrom stats setNames
+#' @importFrom GenomeInfoDb seqlevelsStyle
 #'
 #'
 #' @examples
@@ -111,7 +112,7 @@ export_ibed <- function(ints, file) {
 }
 
 export_washU <- function(ints, file) {
-  seqlevelsStyle(ints) <- "UCSC"
+  GenomeInfoDb::seqlevelsStyle(ints) <- "UCSC"
   int_df <- dplyr::as_tibble(ints)
   int_df <- dplyr::arrange(int_df, seqnames1, start1, end1, seqnames2, start2, end2)
   washU <- data.frame(
@@ -123,7 +124,7 @@ export_washU <- function(ints, file) {
 }
 
 export_washUold <- function(ints, file) {
-  seqlevelsStyle(ints) <- "UCSC"
+  GenomeInfoDb::seqlevelsStyle(ints) <- "UCSC"
   int_df <- as.data.frame(ints)
   washU <- data.frame(
     paste(int_df$seqnames1, ":", int_df$start1, ",", int_df$end1, sep = ""),
