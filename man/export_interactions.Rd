@@ -33,6 +33,7 @@ tibble object with the ibed table and save it in the desired output file
 This function exports interactions in different formats
 }
 \examples{
+\dontrun{
 export_interactions(interactions, file = "output.ibed", format = "ibed", over.write = TRUE)
-
+}
 }

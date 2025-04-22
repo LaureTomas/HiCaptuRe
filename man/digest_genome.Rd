@@ -44,6 +44,8 @@ The package provides for a PAR coordinates file only for Homo sapiens for the ge
 The package provides the motives and cut positions for several restriction enzymes (HindII, MboI, DpnII, EcoRI, BamHI)
 }
 \examples{
+\dontrun{
 digest <- digest_genome(genome = "GRCh38", RE_name = "HindIII")
+}
 
 }
