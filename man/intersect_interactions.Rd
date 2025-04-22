@@ -7,18 +7,20 @@
 intersect_interactions(interactions_list, distance.boxplot = F, ...)
 }
 \arguments{
-\item{interactions_list}{list of GenomicInteractions objects from \code{\link{load_interactions}}}
+\item{interactions_list}{list of HiCaptuRe objects from \code{\link{load_interactions}}}
 
 \item{distance.boxplot}{logical, by default FALSE, plot a boxplot of log10 distance of each intersection in the upset plot}
 
 \item{...}{extra arguments for UpSetR}
 }
 \value{
-list with 3 elements:
-1. 'upset_plot'  an upset plot of the intersections
-2. 'venn' a venn diagram of the intersections
-3. 'intersections' a list of GenomicInteractions objects for all the intersections
+A list with:
+\describe{
+  \item{intersections}{A named list of intersected HiCaptuRe objects}
+  \item{upset}{An UpSetR plot}
+  \item{venn}{A ggVennDiagram plot (NULL if > 7 sets)}
+}
 }
 \description{
-This function computes all the possible intersects for a given list of GenomicInteractions objects
+This function computes all the possible intersects for a given list of HiCaptuRe objects
 }

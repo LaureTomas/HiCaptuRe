@@ -6,9 +6,9 @@
 \usage{
 digest_genome(
   genome = "GRCh38",
-  RE_name = "hindIII",
-  motif = "AAGCTT",
-  cut_position = 1,
+  RE_name = "HindIII",
+  motif = NULL,
+  cut_position = NULL,
   select_chr = c(1:22, "X", "Y"),
   PAR_mask = T,
   PAR_file = NULL,
@@ -40,4 +40,10 @@ This function takes a genome installed and generates its digest for a given rest
 }
 \note{
 The package provides for a PAR coordinates file only for Homo sapiens for the genome version 38
+
+The package provides the motives and cut positions for several restriction enzymes (HindII, MboI, DpnII, EcoRI, BamHI)
+}
+\examples{
+digest <- digest_genome(genome = "GRCh38", RE_name = "HindIII")
+
 }

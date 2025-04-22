@@ -14,7 +14,7 @@ interactionsByBaits(interactions, baits, sep = ",")
 \item{sep}{character separating baits names when several baits in same fragment}
 }
 \value{
-HiCaptuRe object, subset of the original based on the given baits. And an additional slot ByBatis with bait-centric statistics
+The returned object includes a filtered set of interactions and updates the ByBaits slot with a tibble summarizing bait-wise interaction statistics (number of interactions, other ends, etc.). Baits that are not present in the interaction data will have empty statistics.
 }
 \description{
 This function filters a HiCaptuRe object from load_interactions by a set of given bait(s)

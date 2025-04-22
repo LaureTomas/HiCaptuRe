@@ -9,8 +9,8 @@ export_interactions(
   file,
   format = "ibed",
   over.write = F,
-  washU_seqname = "chr",
-  cutoff = 5
+  cutoff = 5,
+  parameters = F
 )
 }
 \arguments{
@@ -18,17 +18,21 @@ export_interactions(
 
 \item{file}{full path to desired output file (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)}
 
-\item{format}{type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe)}
+\item{format}{type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe, seqmonk)}
 
 \item{over.write}{T/F to over write the output file}
 
-\item{washU_seqname}{string to add to the seqnames to export to washU format}
-
 \item{cutoff}{Chicago score cutoff to export interactions}
+
+\item{parameters}{T/F to also export the parameters of the given object}
 }
 \value{
 tibble object with the ibed table and save it in the desired output file
 }
 \description{
 This function exports interactions in different formats
+}
+\examples{
+export_interactions(interactions, file = "output.ibed", format = "ibed", over.write = TRUE)
+
 }

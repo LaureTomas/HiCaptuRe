@@ -2,14 +2,14 @@
 % Please edit documentation in R/annotate_interactions.R
 \name{annotate_interactions}
 \alias{annotate_interactions}
-\title{Annotates GenomicInteractions object from load_interactions}
+\title{Annotates HiCaptuRe object from load_interactions}
 \usage{
 annotate_interactions(interactions, annotation, ...)
 }
 \arguments{
-\item{interactions}{GenomicInteractions object from \code{\link{load_interactions}}}
+\item{interactions}{HiCaptuRe object from \code{\link{load_interactions}}}
 
-\item{annotation}{full path to annotations file or a dataframe with 5 colums: chr, start, end, fragmentID, annotation}
+\item{annotation}{full path to annotations file or a dataframe with 5 columns: chr, start, end, fragmentID, annotation}
 
 \item{...}{additional parameters for fread}
 }
@@ -17,5 +17,5 @@ annotate_interactions(interactions, annotation, ...)
 HiCaptuRe object annotated, with columns bait_1 and bait_2 substituted based on the given annotation
 }
 \description{
-This function annotate a GenomicInteractions object from load_interactions, based on a given annotations file
+This function annotate a HiCaptuRe object from load_interactions, based on a given annotations file
 }

@@ -9,7 +9,7 @@
 Package for dealing with liCHi-C data in Javierre Lab.
 }
 \author{
-\strong{Maintainer}: Laureano Tomás-Daza \email{ltomas@carrerasresearch.org}
+\strong{Maintainer}: Laureano Tomas-Daza \email{ltomas@carrerasresearch.org}
 
 }
 \keyword{internal}

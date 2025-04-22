@@ -4,12 +4,12 @@
 \alias{load_interactions}
 \title{Loads interaction file into GenomicInteractions Object}
 \usage{
-load_interactions(file, washU_seqname = "chr", ...)
+load_interactions(file, sep = "\\t", ...)
 }
 \arguments{
 \item{file}{full path to the interaction file (seqmonk, ibed, washU)}
 
-\item{washU_seqname}{character to remove from seqnames column when using washU format}
+\item{sep}{separator to read the file}
 
 \item{...}{arguments to pass to \link[HiCaptuRe]{digest_genome}}
 }

@@ -9,10 +9,10 @@ peakmatrix2list(peakmatrix, cutoff = 5)
 \arguments{
 \item{peakmatrix}{HiCaptuRe object of a peakmatrix}
 
-\item{cutoff}{Chicago score cutoff to filter interactions}
+\item{cutoff}{Chicago score cut-off to filter interactions}
 }
 \value{
-list with HiCaptuRe objects
+A named list of \code{HiCaptuRe} objects, each corresponding to a sample (inferred from CS_* columns in the peakmatrix).
 }
 \description{
 This function creates a list of HiCaptuRe objects separating all the samples included on a peakmatrix.
