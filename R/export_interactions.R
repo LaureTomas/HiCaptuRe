@@ -20,8 +20,9 @@
 #'
 #'
 #' @examples
+#' \dontrun{
 #' export_interactions(interactions, file = "output.ibed", format = "ibed", over.write = TRUE)
-#'
+#' }
 #' @export
 export_interactions <- function(interactions, file, format = "ibed", over.write = F, cutoff = 5, parameters = F) {
   format <- match.arg(arg = format, choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe","seqmonk"), several.ok = F)

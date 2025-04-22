@@ -24,7 +24,9 @@
 #'
 #'
 #' @examples
+#' \dontrun{
 #' digest <- digest_genome(genome = "GRCh38", RE_name = "HindIII")
+#' }
 #'
 #' @export
 digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, cut_position = NULL, select_chr = c(1:22, "X", "Y"), PAR_mask = T, PAR_file = NULL, ...) {
