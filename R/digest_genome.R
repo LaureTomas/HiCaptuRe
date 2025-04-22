@@ -71,7 +71,7 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
 
   ## get genome
   genome_name <- genome
-  genome <- BSgenome::getBSgenome(genome)
+  genome <- suppressMessages(BSgenome::getBSgenome(genome))
 
   ## If Pseudoautosomal Regions (PAR) masked, read provided file for human
   if (PAR_mask) {
@@ -89,15 +89,16 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
         stop("The PAR file provided doesn't exist")
       }
     }
+    # Harmonize styles
+    PARGR <- GenomicRanges::makeGRangesFromDataFrame(PAR)
+
+    if (!any(GenomeInfoDb::seqlevelsStyle(PARGR) %in% GenomeInfoDb::seqlevelsStyle(genome))) {
+      warning("seqlevelsStyle of PAR changed to match seqlevelsStyle(genome)")
+      GenomeInfoDb::seqlevelsStyle(PARGR) <- GenomeInfoDb::seqlevelsStyle(genome)
+    }
   } ## PAR mask
 
-  # Harmonize styles
-  PARGR <- GenomicRanges::makeGRangesFromDataFrame(PAR)
 
-  if (!any(GenomeInfoDb::seqlevelsStyle(PARGR) %in% GenomeInfoDb::seqlevelsStyle(genome))) {
-    warning("seqlevelsStyle of PAR changed to match seqlevelsStyle(genome)")
-    GenomeInfoDb::seqlevelsStyle(PARGR) <- GenomeInfoDb::seqlevelsStyle(genome)
-  }
 
   ## Select primary chromosomes
   chrs <- GenomeInfoDb::seqnames(genome)
@@ -116,6 +117,8 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
 
     # Mask PAR regions, if needed
     if (PAR_mask) {
+      if(chr %in% seqnames(PARGR))
+      {
       chr_PAR <- IRanges::subsetByOverlaps(PARGR, GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq))))
       if (length(chr_PAR) > 0) {
         chr_seq <- Biostrings::replaceAt(
@@ -123,6 +126,7 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
           ranges(chr_PAR),
           Biostrings::DNAStringSet(rep("N", length(chr_PAR)))
         )
+      }
       }
     }
 
