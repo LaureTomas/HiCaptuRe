@@ -107,17 +107,14 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
     stop("Chromosomes selected in 'select_chr' are not present in this genome. Please try changing 'select_chr' or setting it to 'NULL'")
   }
 
-  p <- progressr::progressor(steps = length(chrs))
-
   ## Digest genome by chromosomes
+  digest <- data.frame()
   for (chr in chrs) {
-    p(sprintf("Digesting %s", chr))
-
     chr_seq <- genome[[chr]]
 
     # Mask PAR regions, if needed
     if (PAR_mask) {
-      chr_PAR <- GenomicRanges::subsetByOverlaps(PARGR, GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq))))
+      chr_PAR <- IRanges::subsetByOverlaps(PARGR, GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq))))
       if (length(chr_PAR) > 0) {
         chr_seq <- Biostrings::replaceAt(
           chr_seq,
