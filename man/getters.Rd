@@ -23,7 +23,7 @@ getByRegions(x)
 \S4method{getByRegions}{HiCaptuRe}(x)
 }
 \arguments{
-\item{HiCaptuRe}{A HiCaptuRe object}
+\item{x}{A HiCaptuRe object}
 }
 \value{
 For 'getParameters', a named list of named vectors. For 'getByBaits', a list

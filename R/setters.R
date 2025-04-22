@@ -3,12 +3,14 @@
 #' Use these functions to set data stored in each of the slots of a
 #' HiCapture object.
 #'
+#' @param x A HiCaptuRe object
+#' @param y Data to add (parameters, tibble with bait-centric information or GRanges with region-centric)
 #' @name setters
-#' @param HiCaptuRe A HiCaptuRe object
-#' @rdname setters
 #'
 #' @return A HiCaptuRe object
 #'
+
+## parameters
 
 #' @rdname setters
 #' @aliases setParameters
@@ -22,6 +24,9 @@ setMethod("setParameters", c(x = "HiCaptuRe", y = "list"), function(x, y) {
   x@parameters <- y
   return(x)
 })
+
+## byBaits
+
 #' @rdname setters
 #' @aliases setByBaits
 #' @export
@@ -34,6 +39,9 @@ setMethod("setByBaits", c(x = "HiCaptuRe", y = "list"), function(x, y) {
   x@ByBaits <- y
   return(x)
 })
+
+## byRegions
+
 #' @rdname setters
 #' @aliases setByRegions
 #' @export

@@ -23,7 +23,9 @@ setByRegions(x, y)
 \S4method{setByRegions}{HiCaptuRe,list}(x, y)
 }
 \arguments{
-\item{HiCaptuRe}{A HiCaptuRe object}
+\item{x}{A HiCaptuRe object}
+
+\item{y}{Data to add (parameters, tibble with bait-centric information or GRanges with region-centric)}
 }
 \value{
 A HiCaptuRe object
