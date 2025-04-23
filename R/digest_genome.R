@@ -114,18 +114,20 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
   digest <- data.frame()
   for (chr in chrs) {
     chr_seq <- genome[[chr]]
-
     # Mask PAR regions, if needed
     if (PAR_mask) {
       if(chr %in% GenomeInfoDb::seqlevels(PARGR))
       {
       chr_PAR <- IRanges::subsetByOverlaps(PARGR, GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq))))
       if (length(chr_PAR) > 0) {
+        widths <- width(chr_PAR)
+        mask_seqs <- Biostrings::DNAStringSet(strrep("N", widths))
+
         chr_seq <- Biostrings::replaceAt(
           chr_seq,
           ranges(chr_PAR),
-          Biostrings::DNAStringSet(rep("N", length(chr_PAR)))
-        )
+          mask_seqs)
+
       }
       }
     }
