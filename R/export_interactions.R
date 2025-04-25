@@ -34,7 +34,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
     export_parameters(interactions, file)
   }
 
-  type <- interactions@parameters$load[["type"]]
+  type <- interactions@parameters$load[["format"]]
 
   if (format == "peakmatrix" & type == "peakmatrix") {
     m <- GenomicRanges::mcols(interactions)

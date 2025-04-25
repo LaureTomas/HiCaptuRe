@@ -21,7 +21,7 @@ peakmatrix2list <- function(peakmatrix, cutoff = 5) {
 
   m <- GenomicRanges::mcols(peakmatrix)
   CS <- grep("CS_", names(m))
-  if (is.na(CS)) {
+  if (length(CS) == 0) {
     stop("No CS_* columns found in the provided HiCaptuRe object.")
   }
 
