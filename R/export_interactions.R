@@ -34,9 +34,11 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
     export_parameters(interactions, file)
   }
 
-  type <- interactions@parameters$load[["format"]]
+  params <- getParameters(interactions)
+  type <- params$load[["format"]]
+  pk <- params$peakmatrix2list
 
-  if (format == "peakmatrix" & type == "peakmatrix") {
+  if (format == "peakmatrix" & (type == "peakmatrix" & is.null(pk))) {
     m <- GenomicRanges::mcols(interactions)
     CS_m <- m[, grep("CS_", names(m))]
     interactions <- interactions[apply(CS_m, 1, function(x) any(x >= cutoff))]
@@ -55,13 +57,18 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
     )
     data.table::fwrite(int_df, file = file, col.names = T, row.names = F, quote = F, sep = "\t")
   } else if (format != "peakmatrix" & type == "peakmatrix") {
-    warning("Interactions is a peakmatrix, but exporting in individual files")
-
-    int_list <- peakmatrix2list(peakmatrix = interactions, cutoff = cutoff)
+    if (is.null(pk)) {
+      warning("Interactions is a peakmatrix, but exporting in individual files")
+      int_list <- peakmatrix2list(peakmatrix = interactions, cutoff = cutoff)
+    } else
+    {
+      int_list <- interactions
+    }
     files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
     export_function <- export_dispatch(format)
     mapply(export_function, int_list, files)
-  } else {
+  }
+  else {
     interactions <- interactions[interactions$CS >= cutoff]
     export_function <- export_dispatch(format)
     export_function(interactions, file)
