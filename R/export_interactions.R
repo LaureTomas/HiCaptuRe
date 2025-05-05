@@ -25,7 +25,7 @@
 #' }
 #' @export
 export_interactions <- function(interactions, file, format = "ibed", over.write = F, cutoff = 5, parameters = F) {
-  format <- match.arg(arg = format, choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe","seqmonk"), several.ok = F)
+  format <- match.arg(arg = format, choices = c("ibed", "peakmatrix", "washU", "washUold", "cytoscape", "bedpe", "seqmonk"), several.ok = F)
   if (file.exists(file) & !over.write) {
     stop("File already exists. Use `over.write = TRUE` to overwrite.")
   }
@@ -57,18 +57,25 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
     )
     data.table::fwrite(int_df, file = file, col.names = T, row.names = F, quote = F, sep = "\t")
   } else if (format != "peakmatrix" & type == "peakmatrix") {
-    if (is.null(pk)) {
-      warning("Interactions is a peakmatrix, but exporting in individual files")
+    if (!is.null(pk)) {
+      if (is.list(interactions)) {
+        int_list <- interactions
+        files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
+        export_function <- export_dispatch(format)
+        mapply(export_function, int_list, files)
+      } else {
+        interactions <- interactions[interactions$CS >= cutoff]
+        export_function <- export_dispatch(format)
+        export_function(interactions, file)
+      }
+    } else {
+      warning("Interactions input appears to be a peakmatrix. Automatically splitting by sample with `peakmatrix2list()`. And exporting as individual files")
       int_list <- peakmatrix2list(peakmatrix = interactions, cutoff = cutoff)
-    } else
-    {
-      int_list <- interactions
+      files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
+      export_function <- export_dispatch(format)
+      mapply(export_function, int_list, files)
     }
-    files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
-    export_function <- export_dispatch(format)
-    mapply(export_function, int_list, files)
-  }
-  else {
+  } else {
     interactions <- interactions[interactions$CS >= cutoff]
     export_function <- export_dispatch(format)
     export_function(interactions, file)
@@ -77,12 +84,13 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 
 export_dispatch <- function(format) {
   switch(format,
-         ibed = export_ibed,
-         washU = export_washU,
-         washUold = export_washUold,
-         cytoscape = export_citoscape,
-         bedpe = export_bedpe,
-         seqmonk = export_seqmonk)
+    ibed = export_ibed,
+    washU = export_washU,
+    washUold = export_washUold,
+    cytoscape = export_citoscape,
+    bedpe = export_bedpe,
+    seqmonk = export_seqmonk
+  )
 }
 
 
@@ -175,5 +183,3 @@ export_seqmonk <- function(ints, file) {
   seqmonk <- dplyr::bind_rows(df1, stats::setNames(df2, names(df1))) %>% dplyr::arrange(ID)
   data.table::fwrite(seqmonk[, -ncol(seqmonk)], file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
-
-
