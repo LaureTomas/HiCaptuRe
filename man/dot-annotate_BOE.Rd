@@ -13,6 +13,6 @@
 HiCaptuRe object with the column int updated
 }
 \description{
-This function annotate a HiCaptuRe object based on the presence or not of annotation in a given restriction fragment
+This internal function annotate a HiCaptuRe object based on the presence or not of annotation in a given restriction fragment
 }
 \keyword{internal}

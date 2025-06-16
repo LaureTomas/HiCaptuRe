@@ -8,7 +8,7 @@
 \alias{getByBaits,HiCaptuRe-method}
 \alias{getByRegions}
 \alias{getByRegions,HiCaptuRe-method}
-\title{Functions to access data held in a HiCaptuRe object.}
+\title{Interanl functions to access data held in a HiCaptuRe object.}
 \usage{
 getParameters(x)
 
@@ -33,4 +33,18 @@ regions-centric information.
 \description{
 Use these functions to access data stored in each of the slots of a
 HiCapture object.
+}
+\examples{
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions <- load_interactions(ibed1, select_chr = "19")
+getParameters(interactions)
+
+baits <- c("ENST00000332235", "ENST00000516525")
+interactions_baits <- interactionsByBaits(interactions = interactions, baits = baits)
+getByBaits(interactions_baits)
+
+regions <- GenomicRanges::GRanges(seqnames = 19, ranges = IRanges(start = c(500000, 1000000), end = c(510000, 1100000)))
+interactions_regions <- interactionsByRegions(interactions = interactions, regions = regions)
+getByRegions(interactions_regions)
+
 }

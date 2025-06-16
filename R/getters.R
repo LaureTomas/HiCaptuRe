@@ -1,4 +1,4 @@
-#' Functions to access data held in a HiCaptuRe object.
+#' Interanl functions to access data held in a HiCaptuRe object.
 #'
 #' Use these functions to access data stored in each of the slots of a
 #' HiCapture object.
