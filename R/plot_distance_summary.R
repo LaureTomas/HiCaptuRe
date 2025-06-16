@@ -13,89 +13,96 @@
 #' @importFrom ggpubr theme_classic2
 #'
 #' @examples
-#' ibed1 <- system.file("extdata", "ibed1_example.zip", package="HiCaptuRe")
+#' ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
 #' interactions1 <- load_interactions(ibed1, select_chr = "19")
 #' df <- distance_summary(interactions = interactions1)
 #' plots <- plot_distance_summary(distances = df)
 #'
 #' @export
-plot_distance_summary <- function(distances, type_of_value="absolute")
-{
-    type_of_value <- match.arg(type_of_value, choices = c("absolute", "by_int_type", "by_total"),several.ok = FALSE)
-    if (type_of_value == "absolute")
-    {
-      plots <- list()
+plot_distance_summary <- function(distances, type_of_value = "absolute") {
+    type_of_value <- match.arg(type_of_value, choices = c("absolute", "by_int_type", "by_total"), several.ok = FALSE)
+    if (type_of_value == "absolute") {
+        plots <- list()
 
-      distances1 <- distances[!(distances$int == "Total"),]
-      distances1 <- distances1[!(distances1$breaks == "total_per_int"),]
+        distances1 <- distances[!(distances$int == "Total"), ]
+        distances1 <- distances1[!(distances1$breaks == "total_per_int"), ]
 
-      g <- ggplot2::ggplot(distances1, ggplot2::aes(x=int, y=value, fill=breaks)) +
-        ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity",position="dodge") +
-        ggplot2::labs(x="Type of interactions",y="Number of interactions", fill="Distances",
-             title=paste0("Number of interactions of ",unique(distances1$sample)," by type of interaction"),
-             subtitle = "Absolute Values") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1)) +
-        ggpubr::theme_classic2()
+        g <- ggplot2::ggplot(distances1, ggplot2::aes(x = int, y = value, fill = breaks)) +
+            ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity", position = "dodge") +
+            ggplot2::labs(
+                x = "Type of interactions", y = "Number of interactions", fill = "Distances",
+                title = paste0("Number of interactions of ", unique(distances1$sample), " by type of interaction"),
+                subtitle = "Absolute Values"
+            ) +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1)) +
+            ggpubr::theme_classic2()
 
-      plots[["int_dist"]] <- g
+        plots[["int_dist"]] <- g
 
-      distancesT <- distances[distances$int == "Total",]
+        distancesT <- distances[distances$int == "Total", ]
 
-      g <- ggplot2::ggplot(distancesT, ggplot2::aes(x=breaks, y=value, fill=breaks)) +
-        ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity",position="dodge") +
-        ggplot2::labs(x="Distances",y="Number of interactions", fill="Distances",
-             title = paste0("Total Number of interactions of ",unique(distances1$sample)),
-             subtitle = "Absolute Values") +
-        ggpubr::theme_classic2() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
+        g <- ggplot2::ggplot(distancesT, ggplot2::aes(x = breaks, y = value, fill = breaks)) +
+            ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity", position = "dodge") +
+            ggplot2::labs(
+                x = "Distances", y = "Number of interactions", fill = "Distances",
+                title = paste0("Total Number of interactions of ", unique(distances1$sample)),
+                subtitle = "Absolute Values"
+            ) +
+            ggpubr::theme_classic2() +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
 
-      plots[["total_dist"]] <- g
-
+        plots[["total_dist"]] <- g
     }
-    if (type_of_value == "by_int_type")
-    {
-      plots <- list()
+    if (type_of_value == "by_int_type") {
+        plots <- list()
 
-      distances1 <- distances[!(distances$int == "Total"),]
-      distances1 <- distances1[!(distances1$breaks == "total_per_int"),]
+        distances1 <- distances[!(distances$int == "Total"), ]
+        distances1 <- distances1[!(distances1$breaks == "total_per_int"), ]
 
-      g <- ggplot2::ggplot(distances1, ggplot2::aes(x=int, y=(value/total_per_int)*100, fill=breaks)) +
-        ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity",position="dodge") +
-        ggplot2::labs(x="Type of interactions",y="% of interactions", fill="Distances",
-             title=paste0("% of interactions of ",unique(distances1$sample)," by type of interaction"),
-             subtitle = "Normalized by the total number of interaction of each type") +
-        ggpubr::theme_classic2() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
+        g <- ggplot2::ggplot(distances1, ggplot2::aes(x = int, y = (value / total_per_int) * 100, fill = breaks)) +
+            ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity", position = "dodge") +
+            ggplot2::labs(
+                x = "Type of interactions", y = "% of interactions", fill = "Distances",
+                title = paste0("% of interactions of ", unique(distances1$sample), " by type of interaction"),
+                subtitle = "Normalized by the total number of interaction of each type"
+            ) +
+            ggpubr::theme_classic2() +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
 
-      plots[["int_dist_norm_int"]] <- g
-
+        plots[["int_dist_norm_int"]] <- g
     }
 
-    if (type_of_value == "by_total")
-    {
-      plots <- list()
+    if (type_of_value == "by_total") {
+        plots <- list()
 
-      distances1 <- distances[!(distances$int == "Total"),]
-      distances1 <- distances1[!(distances1$breaks == "total_per_int"),]
+        distances1 <- distances[!(distances$int == "Total"), ]
+        distances1 <- distances1[!(distances1$breaks == "total_per_int"), ]
 
-      g <- ggplot2::ggplot(distances1, ggplot2::aes(x=int, y=(value/HiCaptuRe)*100, fill=breaks)) +
-        ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity",position="dodge") +
-        ggplot2::labs(x="Type of interactions",y="% of interactions", fill="Distances",
-             title=paste0("% of interactions of ",unique(distances1$sample)," by type of interaction"),
-             subtitle = "Normalized by the Total number of interactions") +
-        ggpubr::theme_classic2() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
+        g <- ggplot2::ggplot(distances1, ggplot2::aes(x = int, y = (value / HiCaptuRe) * 100, fill = breaks)) +
+            ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity", position = "dodge") +
+            ggplot2::labs(
+                x = "Type of interactions", y = "% of interactions", fill = "Distances",
+                title = paste0("% of interactions of ", unique(distances1$sample), " by type of interaction"),
+                subtitle = "Normalized by the Total number of interactions"
+            ) +
+            ggpubr::theme_classic2() +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
 
-      plots[["int_dist_norm_total"]] <- g
+        plots[["int_dist_norm_total"]] <- g
 
-      distancesT <- distances[distances$int == "Total",]
+        distancesT <- distances[distances$int == "Total", ]
 
-      g <- ggplot2::ggplot(distancesT, ggplot2::aes(x=breaks, y=(value/HiCaptuRe)*100, fill=breaks)) +
-        ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity",position="dodge") +
-        ggplot2::labs(x="Distances",y="Number of interactions", fill="Distances",
-                      title = paste0("Total Number of interactions of ",unique(distances1$sample)),
-                      subtitle = "Absolute Values") +
-        ggpubr::theme_classic2() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
+        g <- ggplot2::ggplot(distancesT, ggplot2::aes(x = breaks, y = (value / HiCaptuRe) * 100, fill = breaks)) +
+            ggplot2::geom_bar(width = 1, linewidth = 1, stat = "identity", position = "dodge") +
+            ggplot2::labs(
+                x = "Distances", y = "Number of interactions", fill = "Distances",
+                title = paste0("Total Number of interactions of ", unique(distances1$sample)),
+                subtitle = "Absolute Values"
+            ) +
+            ggpubr::theme_classic2() +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 70, hjust = 1))
 
-      plots[["total_dist_norm_total"]] <- g
-
+        plots[["total_dist_norm_total"]] <- g
     }
     return(plots)
-
 }

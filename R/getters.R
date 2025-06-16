@@ -16,12 +16,12 @@
 #' @aliases getParameters
 #' @export
 setGeneric("getParameters", function(x) {
-  standardGeneric("getParameters")
+    standardGeneric("getParameters")
 })
 #' @rdname getters
 #' @export
 setMethod("getParameters", c(x = "HiCaptuRe"), function(x) {
-  return(x@parameters)
+    return(x@parameters)
 })
 
 ## byBaits
@@ -30,12 +30,12 @@ setMethod("getParameters", c(x = "HiCaptuRe"), function(x) {
 #' @aliases getByBaits
 #' @export
 setGeneric("getByBaits", function(x) {
-  standardGeneric("getByBaits")
+    standardGeneric("getByBaits")
 })
 #' @rdname getters
 #' @export
 setMethod("getByBaits", c(x = "HiCaptuRe"), function(x) {
-  return(x@ByBaits)
+    return(x@ByBaits)
 })
 
 ## byRegions
@@ -44,10 +44,10 @@ setMethod("getByBaits", c(x = "HiCaptuRe"), function(x) {
 #' @aliases getByRegions
 #' @export
 setGeneric("getByRegions", function(x) {
-  standardGeneric("getByRegions")
+    standardGeneric("getByRegions")
 })
 #' @rdname getters
 #' @export
 setMethod("getByRegions", c(x = "HiCaptuRe"), function(x) {
-  return(x@ByRegions)
+    return(x@ByRegions)
 })

@@ -16,13 +16,13 @@
 #' @aliases setParameters
 #' @export
 setGeneric("setParameters", function(x, y) {
-  standardGeneric("setParameters")
+    standardGeneric("setParameters")
 })
 #' @rdname setters
 #' @export
 setMethod("setParameters", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-  x@parameters <- y
-  return(x)
+    x@parameters <- y
+    return(x)
 })
 
 ## byBaits
@@ -31,13 +31,13 @@ setMethod("setParameters", c(x = "HiCaptuRe", y = "list"), function(x, y) {
 #' @aliases setByBaits
 #' @export
 setGeneric("setByBaits", function(x, y) {
-  standardGeneric("setByBaits")
+    standardGeneric("setByBaits")
 })
 #' @rdname setters
 #' @export
 setMethod("setByBaits", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-  x@ByBaits <- y
-  return(x)
+    x@ByBaits <- y
+    return(x)
 })
 
 ## byRegions
@@ -46,11 +46,11 @@ setMethod("setByBaits", c(x = "HiCaptuRe", y = "list"), function(x, y) {
 #' @aliases setByRegions
 #' @export
 setGeneric("setByRegions", function(x, y) {
-  standardGeneric("setByRegions")
+    standardGeneric("setByRegions")
 })
 #' @rdname setters
 #' @export
 setMethod("setByRegions", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-  x@ByRegions <- y
-  return(x)
+    x@ByRegions <- y
+    return(x)
 })
