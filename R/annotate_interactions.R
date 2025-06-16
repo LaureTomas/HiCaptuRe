@@ -14,6 +14,14 @@
 #' @importFrom S4Vectors elementMetadata
 #' @importFrom methods is
 #'
+#'
+#' @examples
+#' annotation <- system.file("extdata", "annotation_example.txt", package="HiCaptuRe")
+#' ibed1 <- system.file("extdata", "ibed1_example.zip", package="HiCaptuRe")
+#' interactions <- load_interactions(ibed1, select_chr = "19")
+#' interactions <- annotate_interactions(interactions = interactions, annotation = annotation)
+#'
+#'
 #' @export
 annotate_interactions <- function(interactions, annotation, ...) {
   if (any(class(annotation) == "data.frame")) {
@@ -46,7 +54,7 @@ annotate_interactions <- function(interactions, annotation, ...) {
     interactions$bait_1[is.na(interactions$bait_1)] <- "."
     interactions$bait_2[is.na(interactions$bait_2)] <- "."
 
-    interactions <- annotate_BOE(interactions)
+    interactions <- .annotate_BOE(interactions)
 
     cond <- ((interactions$ID_1 > interactions$ID_2) & interactions$int == "B_B") | ((interactions$ID_1 < interactions$ID_2) & interactions$int == "OE_B")
 
@@ -59,7 +67,7 @@ annotate_interactions <- function(interactions, annotation, ...) {
     cols <- c("bait_1", "bait_2", "ID_1", "ID_2")
     S4Vectors::elementMetadata(interactions[cond])[cols] <- S4Vectors::elementMetadata(interactions[cond])[cols[c(rbind(seq(2, length(cols), 2), seq(1, length(cols), 2)))]]
 
-    interactions <- annotate_BOE(interactions)
+    interactions <- .annotate_BOE(interactions)
 
     param <- getParameters(interactions)
     param$annotate <- c(annotation = annotation_file)
@@ -83,7 +91,7 @@ annotate_interactions <- function(interactions, annotation, ...) {
 #' @importFrom GenomicRanges split
 #' @importFrom S4Vectors elementMetadata
 #' @keywords internal
-annotate_BOE <- function(interactions) {
+.annotate_BOE <- function(interactions) {
   a1 <- GenomicInteractions::anchorOne(interactions)
   a1$bait_1 <- S4Vectors::elementMetadata(interactions)[, "bait_1"]
   a2 <- GenomicInteractions::anchorTwo(interactions)

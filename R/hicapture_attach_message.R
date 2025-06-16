@@ -1,4 +1,4 @@
-hicapture_attach_message <- function() {
+.hicapture_attach_message <- function() {
   header <- cli::rule(
     left = cli::style_bold("Attaching HiCaptuRe package"),
     right = paste0("version ", utils::packageVersion("HiCaptuRe"))

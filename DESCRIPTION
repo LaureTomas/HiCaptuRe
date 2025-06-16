@@ -1,10 +1,14 @@
 Package: HiCaptuRe
 Type: Package
-Title: In-house R package for Capture Hi-C data handling
-Version: 0.10.3
-Authors@R: c(person("Laureano Tomas-Daza", role = c("aut", "cre"),
-                     email = "ltomas@carrerasresearch.org"))
-Description: Package for dealing with liCHi-C data in Javierre Lab.
+Title: HiCaptuRe: Manipulating and integrating Capture Hi-C data
+Version: 0.99.0
+Authors@R: c(person("Laureano Tomas-Daza", 
+                    role = c("aut", "cre"),
+                    email = "lauretomas@gmail.com",
+                    comment = c(ORCID = "0000-0002-6127-1694")))
+URL: https://github.com/LaureTomas/HiCaptuRe
+Description: Capture Hi-C is a set of techniques that enable the detection of genomic interactions involving regions of interest, known as baits. By focusing on selected loci, these approaches reduce sequencing costs while maintaining high resolution at the level of restriction fragments. HiCaptuRe provides tools to import, annotate, manipulate, and export Capture Hi-C data. The package accounts for the specific structure of bait–otherEnd interactions, facilitates integration with other omics datasets, and enables comparison across samples and conditions.
+BugReports: https://github.com/LaureTomas/HiCaptuRe/issues
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -27,7 +31,6 @@ Imports:
     magrittr,
     memoise,
     methods,
-    progressr,
     S4Vectors,
     stringr,
     tibble,
@@ -40,4 +43,9 @@ Suggests:
     knitr,
     rmarkdown,
     DT
+biocViews:
+    Epigenetics,
+    HiC,
+    Sequencing, 
+    Software
 VignetteBuilder: knitr

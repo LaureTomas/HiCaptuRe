@@ -9,12 +9,17 @@
 #' @return The returned object includes a filtered set of interactions and updates the ByBaits slot with a tibble summarizing bait-wise interaction statistics (number of interactions, other ends, etc.). Baits that are not present in the interaction data will have empty statistics.
 #'
 #' @importFrom stringr str_split
-#' @importFrom dplyr as_tibble group_by summarise filter select rename arrange tibble
+#' @importFrom dplyr as_tibble group_by reframe filter select rename arrange tibble
 #' @importFrom tidyr separate_rows
+#'
+#' @examples
+#' ibed1 <- system.file("extdata", "ibed1_example.zip", package="HiCaptuRe")
+#' interactions <- load_interactions(ibed1, select_chr = "19")
+#' baits <- c("ENST00000332235","ENST00000516525")
+#' interactions_baits <- interactionsByBaits(interactions = interactions, baits = baits)
 #'
 #' @export
 interactionsByBaits <- function(interactions, baits, sep = ",") {
-  `%>%` <- magrittr::`%>%`
 
   one <- sapply(stringr::str_split(as.character(interactions$bait_1), sep), function(x) any(x %in% baits))
   two <- sapply(stringr::str_split(as.character(interactions$bait_2), sep), function(x) any(x %in% baits))
@@ -24,29 +29,29 @@ interactionsByBaits <- function(interactions, baits, sep = ",") {
     warning("There is no interaction including the given bait(s). Could Interactions be annotated with a different bait nomenclature?")
     baits_final <- tibble(ID = NA, bait = baits, N_int = NA, NOE = NA, interactingID = NA, interactingAnnotation = NA, interactingDistance = NA)
   } else {
-    baits_df <- dplyr::as_tibble(interactions_baits) %>%
-      tidyr::separate_rows(bait_1, sep = sep) %>%
+    baits_df <- dplyr::as_tibble(interactions_baits) |>
+      tidyr::separate_rows(bait_1, sep = sep) |>
       tidyr::separate_rows(bait_2, sep = sep)
 
-    baits1 <- baits_df %>%
-      dplyr::filter(bait_1 %in% baits) %>%
+    baits1 <- baits_df |>
+      dplyr::filter(bait_1 %in% baits) |>
       dplyr::select(ID_1, ID_2, bait_1, bait_2, distance)
 
-    baits2 <- baits_df %>%
-      dplyr::filter(bait_2 %in% baits) %>%
+    baits2 <- baits_df |>
+      dplyr::filter(bait_2 %in% baits) |>
       dplyr::select(ID_2, ID_1, bait_2, bait_1, distance)
 
     colnames(baits2) <- colnames(baits1)
 
-    baits_final <- dplyr::as_tibble(rbind(baits1, baits2)) %>%
-      dplyr::group_by(ID_1, bait_1) %>%
-      dplyr::summarise(
+    baits_final <- dplyr::as_tibble(rbind(baits1, baits2)) |>
+      dplyr::group_by(ID_1, bait_1) |>
+      dplyr::reframe(
         N_int = length(unique(ID_2)),
         NOE = sum(bait_2 == "."),
         interactingID = paste(unique(ID_2), collapse = ","),
         interactingAnnotation = paste(unique(bait_2), collapse = ","),
         interactingDistance = paste(distance, collapse = ",")
-      ) %>%
+      ) |>
       dplyr::rename(
         "bait" = "bait_1",
         "ID" = "ID_1"
@@ -55,7 +60,7 @@ interactionsByBaits <- function(interactions, baits, sep = ",") {
     if (any(!baits %in% baits_final$bait)) {
       missing_baits <- baits[!baits %in% baits_final$bait]
       missing <- data.frame(ID = NA, bait = missing_baits, N_int = 0, NOE = 0, interactingID = NA, interactingAnnotation = NA, interactingDistance = NA)
-      baits_final <- dplyr::as_tibble(rbind(baits_final, missing)) %>% dplyr::arrange(ID)
+      baits_final <- dplyr::as_tibble(rbind(baits_final, missing)) |> dplyr::arrange(ID)
     }
   }
 

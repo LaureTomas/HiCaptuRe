@@ -15,14 +15,18 @@
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom IRanges subsetByOverlaps overlapsAny countOverlaps pintersect mergeByOverlaps
 #' @importFrom data.table fread
-#' @importFrom dplyr as_tibble group_by mutate summarise n rename filter
+#' @importFrom dplyr as_tibble group_by mutate reframe n rename filter
 #' @importFrom tidyr separate_rows
 #' @importFrom S4Vectors elementMetadata width
 #'
+#' @examples
+#' ibed1 <- system.file("extdata", "ibed1_example.zip", package="HiCaptuRe")
+#' interactions <- load_interactions(ibed1, select_chr = "19")
+#' regions <- GenomicRanges::GRanges(seqnames = 19, ranges = IRanges(start = c(500000,1000000), end = c(510000,1100000)))
+#' interactions_regions <- interactionsByRegions(interactions = interactions, regions = regions)
+#'
 #' @export
 interactionsByRegions <- function(interactions, regions, chr = NULL, start = NULL, end = NULL, invert = F) {
-  ## Setting pipe operator from magrittr package
-  `%>%` <- magrittr::`%>%`
 
   if (is(regions, "GRanges")) {
     regions_name <- deparse(substitute(regions))
@@ -65,10 +69,10 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
       if (nrow(anchor2) != 0) {
         anchor2$B.id <- unlist(anchor2$B.id)
       }
-      df <- dplyr::as_tibble(unique(rbind(anchor1[, c("regionID", "fragmentID", "B.id")], anchor2[, c("regionID", "fragmentID", "B.id")]))) %>%
-        dplyr::group_by(regionID) %>%
-        dplyr::mutate(annot = ifelse(is.na(B.id), ".", B.id)) %>%
-        dplyr::summarise(
+      df <- dplyr::as_tibble(unique(rbind(anchor1[, c("regionID", "fragmentID", "B.id")], anchor2[, c("regionID", "fragmentID", "B.id")]))) |>
+        dplyr::group_by(regionID) |>
+        dplyr::mutate(annot = ifelse(is.na(B.id), ".", B.id)) |>
+        dplyr::reframe(
           Nfragment = dplyr::n(),
           NOE = sum(annot == "."),
           fragmentID = paste(fragmentID, collapse = ","),
@@ -91,10 +95,10 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
       if (nrow(anchor1) != 0) {
         anchor1$B.id <- unlist(anchor1$B.id)
       }
-      df1 <- dplyr::as_tibble(anchor1[, c("fragmentID", "regionID", "intersect")]) %>%
-        dplyr::rename(ID_1 = fragmentID) %>%
-        dplyr::group_by(ID_1) %>%
-        dplyr::summarise(
+      df1 <- dplyr::as_tibble(anchor1[, c("fragmentID", "regionID", "intersect")]) |>
+        dplyr::rename(ID_1 = fragmentID) |>
+        dplyr::group_by(ID_1) |>
+        dplyr::reframe(
           region_1 = T,
           Nregion_1 = dplyr::n(),
           regionID_1 = paste(regionID, collapse = ","),
@@ -109,10 +113,10 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
       if (nrow(anchor2) != 0) {
         anchor2$B.id <- unlist(anchor2$B.id)
       }
-      df2 <- dplyr::as_tibble(anchor2[, c("fragmentID", "regionID", "intersect")]) %>%
-        dplyr::rename(ID_2 = fragmentID) %>%
-        dplyr::group_by(ID_2) %>%
-        dplyr::summarise(
+      df2 <- dplyr::as_tibble(anchor2[, c("fragmentID", "regionID", "intersect")]) |>
+        dplyr::rename(ID_2 = fragmentID) |>
+        dplyr::group_by(ID_2) |>
+        dplyr::reframe(
           region_2 = T,
           Nregion_2 = dplyr::n(),
           regionID_2 = paste(regionID, collapse = ","),
@@ -137,28 +141,28 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
         stop("Data order is not correct. Maybe some bait was initially clasified as Other-End")
       }
 
-      df <- dplyr::as_tibble(unique(rbind(anchor1[, c("regionID", "fragmentID", "B.id")], anchor2[, c("regionID", "fragmentID", "B.id")]))) %>%
-        dplyr::group_by(regionID) %>%
-        dplyr::mutate(annot = ifelse(is.na(B.id), ".", B.id)) %>%
-        dplyr::summarise(
+      df <- dplyr::as_tibble(unique(rbind(anchor1[, c("regionID", "fragmentID", "B.id")], anchor2[, c("regionID", "fragmentID", "B.id")]))) |>
+        dplyr::group_by(regionID) |>
+        dplyr::mutate(annot = ifelse(is.na(B.id), ".", B.id)) |>
+        dplyr::reframe(
           Nfragment = dplyr::n(),
           NOE = sum(annot == "."),
           fragmentID = paste(fragmentID, collapse = ","),
           fragmentAnnot = paste(unique(B.id), collapse = ",")
         )
 
-      m1 <- dplyr::as_tibble(m[, c("regionID_1", "ID_1", "ID_2")]) %>%
-        dplyr::mutate(ID = paste(ID_1, ID_2, sep = "_")) %>%
+      m1 <- dplyr::as_tibble(m[, c("regionID_1", "ID_1", "ID_2")]) |>
+        dplyr::mutate(ID = paste(ID_1, ID_2, sep = "_")) |>
         dplyr::rename(regionID = regionID_1)
-      m2 <- dplyr::as_tibble(m[, c("regionID_2", "ID_1", "ID_2")]) %>%
-        dplyr::mutate(ID = paste(ID_1, ID_2, sep = "_")) %>%
+      m2 <- dplyr::as_tibble(m[, c("regionID_2", "ID_1", "ID_2")]) |>
+        dplyr::mutate(ID = paste(ID_1, ID_2, sep = "_")) |>
         dplyr::rename(regionID = regionID_2)
-      mfinal <- rbind(m1[, c(1, 4)], m2[, c(1, 4)]) %>%
-        dplyr::filter(!is.na(regionID)) %>%
-        tidyr::separate_rows(regionID, sep = ",") %>%
-        dplyr::mutate(regionID = as.numeric(regionID)) %>%
-        dplyr::group_by(regionID) %>%
-        dplyr::summarise(N_int = length(unique(ID)))
+      mfinal <- rbind(m1[, c(1, 4)], m2[, c(1, 4)]) |>
+        dplyr::filter(!is.na(regionID)) |>
+        tidyr::separate_rows(regionID, sep = ",") |>
+        dplyr::mutate(regionID = as.numeric(regionID)) |>
+        dplyr::group_by(regionID) |>
+        dplyr::reframe(N_int = length(unique(ID)))
 
       df <- merge(mfinal, df, by = "regionID")
 

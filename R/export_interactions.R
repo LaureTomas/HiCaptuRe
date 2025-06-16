@@ -31,7 +31,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
   }
 
   if (parameters) {
-    export_parameters(interactions, file)
+    .export_parameters(interactions, file)
   }
 
   params <- getParameters(interactions)
@@ -61,40 +61,40 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
       if (is.list(interactions)) {
         int_list <- interactions
         files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
-        export_function <- export_dispatch(format)
+        export_function <- .export_dispatch(format)
         mapply(export_function, int_list, files)
       } else {
         interactions <- interactions[interactions$CS >= cutoff]
-        export_function <- export_dispatch(format)
+        export_function <- .export_dispatch(format)
         export_function(interactions, file)
       }
     } else {
       warning("Interactions input appears to be a peakmatrix. Automatically splitting by sample with `peakmatrix2list()`. And exporting as individual files")
       int_list <- peakmatrix2list(peakmatrix = interactions, cutoff = cutoff)
       files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
-      export_function <- export_dispatch(format)
+      export_function <- .export_dispatch(format)
       mapply(export_function, int_list, files)
     }
   } else {
     interactions <- interactions[interactions$CS >= cutoff]
-    export_function <- export_dispatch(format)
+    export_function <- .export_dispatch(format)
     export_function(interactions, file)
   }
 }
 
-export_dispatch <- function(format) {
+.export_dispatch <- function(format) {
   switch(format,
-    ibed = export_ibed,
-    washU = export_washU,
-    washUold = export_washUold,
-    cytoscape = export_citoscape,
-    bedpe = export_bedpe,
-    seqmonk = export_seqmonk
+    ibed = .export_ibed,
+    washU = .export_washU,
+    washUold = .export_washUold,
+    cytoscape = .export_citoscape,
+    bedpe = .export_bedpe,
+    seqmonk = .export_seqmonk
   )
 }
 
 
-export_parameters <- function(interactions, file) {
+.export_parameters <- function(interactions, file) {
   file <- paste0(file, ".parameters")
   param <- getParameters(interactions)
 
@@ -113,7 +113,7 @@ export_parameters <- function(interactions, file) {
 }
 
 
-export_ibed <- function(ints, file) {
+.export_ibed <- function(ints, file) {
   int_df <- dplyr::as_tibble(ints)[, c(
     "seqnames1", "start1", "end1", "bait_1",
     "seqnames2", "start2", "end2", "bait_2",
@@ -127,7 +127,7 @@ export_ibed <- function(ints, file) {
   data.table::fwrite(int_df, file = file, col.names = T, row.names = F, quote = F, sep = "\t")
 }
 
-export_washU <- function(ints, file) {
+.export_washU <- function(ints, file) {
   GenomeInfoDb::seqlevelsStyle(ints) <- "UCSC"
   int_df <- dplyr::as_tibble(ints)
   int_df <- dplyr::arrange(int_df, seqnames1, start1, end1, seqnames2, start2, end2)
@@ -139,7 +139,7 @@ export_washU <- function(ints, file) {
   data.table::fwrite(washU, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
 
-export_washUold <- function(ints, file) {
+.export_washUold <- function(ints, file) {
   GenomeInfoDb::seqlevelsStyle(ints) <- "UCSC"
   int_df <- as.data.frame(ints)
   washU <- data.frame(
@@ -151,7 +151,7 @@ export_washUold <- function(ints, file) {
   data.table::fwrite(washU, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
 
-export_bedpe <- function(ints, file) {
+.export_bedpe <- function(ints, file) {
   ints$name <- 1:length(ints)
   int_df <- dplyr::as_tibble(ints)[, c(
     "seqnames1", "start1", "end1",
@@ -162,13 +162,13 @@ export_bedpe <- function(ints, file) {
   data.table::fwrite(int_df, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
 
-export_citoscape <- function(ints, file) {
+.export_citoscape <- function(ints, file) {
   net <- igraph::simplify(export.igraph(ints))
   nodes_edges <- igraph::as_edgelist(net)
   data.table::fwrite(nodes_edges, file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
 
-export_seqmonk <- function(ints, file) {
+.export_seqmonk <- function(ints, file) {
   ints$ID <- 1:length(ints)
   df1 <- dplyr::as_tibble(ints)[, c(
     "seqnames2", "start2", "end2", "bait_2",
@@ -180,6 +180,6 @@ export_seqmonk <- function(ints, file) {
     "reads", "CS", "ID"
   )]
 
-  seqmonk <- dplyr::bind_rows(df1, stats::setNames(df2, names(df1))) %>% dplyr::arrange(ID)
+  seqmonk <- dplyr::bind_rows(df1, stats::setNames(df2, names(df1))) |>  dplyr::arrange(ID)
   data.table::fwrite(seqmonk[, -ncol(seqmonk)], file = file, col.names = F, row.names = F, quote = F, sep = "\t")
 }
