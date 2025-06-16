@@ -10,5 +10,5 @@
 }
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage(hicapture_attach_message())
+  packageStartupMessage(.hicapture_attach_message())
 }

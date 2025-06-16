@@ -21,6 +21,14 @@
 #' @importFrom S4Vectors elementMetadata
 #' @importFrom ggVennDiagram ggVennDiagram
 #'
+#' @examples
+#' ibed1 <- system.file("extdata", "ibed1_example.zip", package="HiCaptuRe")
+#' interactions1 <- load_interactions(ibed1, select_chr = "19")
+#' ibed2 <- system.file("extdata", "ibed2_example.zip", package="HiCaptuRe")
+#' interactions2 <- load_interactions(ibed2, select_chr = "19")
+#' interactions_list <- list(ibed1 = ibed1, ibed2 = ibed2)
+#' intersection <- intersect_interactions(interactions_list = interactions_list)
+#'
 #' @export
 intersect_interactions <- function(interactions_list, distance.boxplot = F, ...) {
   param <- lapply(interactions_list, function(x) getParameters(x)$digest)
@@ -32,24 +40,24 @@ intersect_interactions <- function(interactions_list, distance.boxplot = F, ...)
   }
 
   check_annot <- lapply(interactions_list, function(x) {
-    as_tibble(elementMetadata(x@regions)) %>%
-      mutate(name = dplyr::coalesce(unlist(B.id), unlist(OE.id))) %>%
-      select(node.class, fragmentID, name) %>%
+    as_tibble(elementMetadata(x@regions)) |>
+      mutate(name = dplyr::coalesce(unlist(B.id), unlist(OE.id))) |>
+      select(node.class, fragmentID, name) |>
       unique()
   })
-  check_annot <- do.call(rbind, check_annot) %>% unique()
+  check_annot <- do.call(rbind, check_annot) |> unique()
 
-  check_annot2 <- check_annot %>%
-    dplyr::select(-name) %>%
-    unique() %>%
-    dplyr::group_by(fragmentID) %>%
+  check_annot2 <- check_annot |>
+    dplyr::select(-name) |>
+    unique() |>
+    dplyr::group_by(fragmentID) |>
     dplyr::reframe(n = n())
   if (any(check_annot2$n > 1)) {
     stop("HiCaptuRe objects in the interactions_list contain fragments with different B/OE classification. Check annotate_interactions().")
   }
-  check_annot3 <- check_annot %>%
-    unique() %>%
-    dplyr::group_by(fragmentID) %>%
+  check_annot3 <- check_annot |>
+    unique() |>
+    dplyr::group_by(fragmentID) |>
     dplyr::reframe(n = n())
   if (any(check_annot3$n > 1)) {
     warning("HiCaptuRe objects in the interactions_list contain fragments with different annotation. Check annotate_interactions().")

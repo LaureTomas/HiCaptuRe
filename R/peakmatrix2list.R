@@ -9,6 +9,11 @@
 #'
 #' @importFrom GenomicRanges mcols
 #'
+#' @examples
+#' peakmatrix <- system.file("extdata", "peakmatrix_example.zip", package="HiCaptuRe")
+#' interactions <- load_interactions(peakmatrix, select_chr = "19")
+#' interactions_list <- peakmatrix2list(peakmatrix = interactions)
+#'
 #' @export
 peakmatrix2list <- function(peakmatrix, cutoff = 5) {
   parameters <- getParameters(peakmatrix)

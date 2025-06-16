@@ -12,6 +12,12 @@
 #' @importFrom ggplot2 ggplot aes geom_bar labs theme_minimal theme element_text
 #' @importFrom ggpubr theme_classic2
 #'
+#' @examples
+#' ibed1 <- system.file("extdata", "ibed1_example.zip", package="HiCaptuRe")
+#' interactions1 <- load_interactions(ibed1, select_chr = "19")
+#' df <- distance_summary(interactions = interactions1)
+#' plots <- plot_distance_summary(distances = df)
+#'
 #' @export
 plot_distance_summary <- function(distances, type_of_value="absolute")
 {
