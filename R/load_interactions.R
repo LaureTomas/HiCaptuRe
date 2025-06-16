@@ -27,7 +27,7 @@ load_interactions <- function(file, sep = "\t", ...) {
     stop(paste(basename(file), "does not exist"))
   }
 
-  data <- data.table::fread(file = file, sep = sep, stringsAsFactors = F, na.strings = "")
+  data <- data.table::fread(file = file, sep = sep, stringsAsFactors = FALSE, na.strings = "")
   format <- .detect_format(data)
   process_function <- switch(format,
     ibed = .process_ibed,
@@ -120,7 +120,7 @@ load_interactions <- function(file, sep = "\t", ...) {
   new_data <- new_data[, lapply(.SD, max), by = list(chr_1, start_1, end_1, chr_2, start_2, end_2)]
   new_data <- new_data[order(new_data$rownames1), ]
 
-  if (all.equal(new_data[, grep("CS_1.*", colnames(new_data), perl = T), with = F], new_data[, grep("CS_2.*", colnames(new_data)), with = F], check.attributes = F)) {
+  if (all.equal(new_data[, grep("CS_1.*", colnames(new_data), perl = TRUE), with = FALSE], new_data[, grep("CS_2.*", colnames(new_data)), with = FALSE], check.attributes = FALSE)) {
     ## Keeping only one of the artificial inverted duplications
     new_data <- dplyr::slice(new_data, seq(1, dplyr::n(), 2))
     return(new_data)
@@ -131,12 +131,12 @@ load_interactions <- function(file, sep = "\t", ...) {
 
 
 .process_peakmatrix <- function(data) {
-  data <- data[, !grepl("dist|baitID|oeID", colnames(data)), with = F]
+  data <- data[, !grepl("dist|baitID|oeID", colnames(data)), with = FALSE]
   score_names <- paste0("CS_", colnames(data)[9:(ncol(data))])
 
   reads <- rep(0, nrow(data))
   warning("reads column set to 0 because peakmatrix format does not contain this info")
-  data <- cbind(data[, 1:8], reads, data[, 9:ncol(data), with = F])
+  data <- cbind(data[, 1:8], reads, data[, 9:ncol(data), with = FALSE])
 
   data <- .formating_data(data)
   new_datadd <- .process_data(data, score_names)
@@ -226,14 +226,14 @@ load_interactions <- function(file, sep = "\t", ...) {
 }
 
 .formating_data <- function(data) {
-  df1 <- data[, c(1:4, 9:ncol(data)), with = F]
-  df2 <- data[, c(5:ncol(data)), with = F]
+  df1 <- data[, c(1:4, 9:ncol(data)), with = FALSE]
+  df2 <- data[, c(5:ncol(data)), with = FALSE]
   colnames(df2) <- colnames(df1)
 
   df <- rbind(data.table::data.table(df1, index = 1:nrow(df1)), data.table::data.table(df2, index = 1:nrow(df2)))
 
   df <- df[order(df$index), ]
-  data <- df[, !grepl("index", colnames(df)), with = F]
+  data <- df[, !grepl("index", colnames(df)), with = FALSE]
   return(data)
 }
 
@@ -255,13 +255,13 @@ load_interactions <- function(file, sep = "\t", ...) {
 
   new_datadd <- .deduplicate_interactions(new_data)
 
-  new_datadd <- new_datadd[, !colnames(new_datadd) %in% c("rownames1", "rownames2", "read_1", paste0("CS_1_ct", 1:length(score_names))), with = F]
+  new_datadd <- new_datadd[, !colnames(new_datadd) %in% c("rownames1", "rownames2", "read_1", paste0("CS_1_ct", 1:length(score_names))), with = FALSE]
   colnames(new_datadd)[9:ncol(new_datadd)] <- c("reads", score_names)
   new_datadd <- new_datadd[, c(
     "chr_1", "start_1", "end_1", "bait_1",
     "chr_2", "start_2", "end_2", "bait_2",
     "reads", score_names
-  ), with = F]
+  ), with = FALSE]
   flip <- c(5:8, 1:4, 9:ncol(new_datadd))
   new_datadd[new_datadd$bait_1 == ".", ] <- new_datadd[new_datadd$bait_1 == ".", ..flip]
   return(new_datadd)
@@ -276,10 +276,10 @@ load_interactions <- function(file, sep = "\t", ...) {
     stop(paste("Some chromosomes from data are not present in the digest genome. Missing chromosomes:", paste(seqnames_data[!seqnames_data %in% seqnames_digest], collapse = ", "), ". Check digest_genome() arguments."))
   }
 
-  digestGR <- GenomicRanges::makeGRangesFromDataFrame(digest$digest, keep.extra.columns = T)
+  digestGR <- GenomicRanges::makeGRangesFromDataFrame(digest$digest, keep.extra.columns = TRUE)
 
-  region1 <- GenomicRanges::makeGRangesFromDataFrame(new_datadd[, 1:4], seqnames.field = "chr_1", start.field = "start_1", end.field = "end_1", keep.extra.columns = T, seqinfo = digest$seqinfo)
-  region2 <- GenomicRanges::makeGRangesFromDataFrame(new_datadd[, 5:ncol(new_datadd)], seqnames.field = "chr_2", start.field = "start_2", end.field = "end_2", keep.extra.columns = T, seqinfo = digest$seqinfo)
+  region1 <- GenomicRanges::makeGRangesFromDataFrame(new_datadd[, 1:4], seqnames.field = "chr_1", start.field = "start_1", end.field = "end_1", keep.extra.columns = TRUE, seqinfo = digest$seqinfo)
+  region2 <- GenomicRanges::makeGRangesFromDataFrame(new_datadd[, 5:ncol(new_datadd)], seqnames.field = "chr_2", start.field = "start_2", end.field = "end_2", keep.extra.columns = TRUE, seqinfo = digest$seqinfo)
 
   ID1 <- GenomicRanges::findOverlaps(region1, digestGR)
   ID2 <- GenomicRanges::findOverlaps(region2, digestGR)
@@ -295,7 +295,7 @@ load_interactions <- function(file, sep = "\t", ...) {
   region2$ID_2 <- digestGR$fragment_ID[S4Vectors::subjectHits(ID2)]
 
   cols <- names(GenomicRanges::mcols(region2))
-  order <- c(grep("bait_2", cols), grep("ID_2", cols), grep("bait_2|ID_2", cols, invert = T))
+  order <- c(grep("bait_2", cols), grep("ID_2", cols), grep("bait_2|ID_2", cols, invert = TRUE))
   S4Vectors::elementMetadata(region2) <- S4Vectors::elementMetadata(region2)[, order]
 
   gi <- GenomicInteractions::GenomicInteractions(region1, region2)
@@ -314,7 +314,7 @@ load_interactions <- function(file, sep = "\t", ...) {
   gi@anchor1[cond] <- a2
   gi@anchor2[cond] <- a1
 
-  cols <- sort(grep("_", colnames(S4Vectors::elementMetadata(gi[cond]))[1:4], value = T))
+  cols <- sort(grep("_", colnames(S4Vectors::elementMetadata(gi[cond]))[1:4], value = TRUE))
   S4Vectors::elementMetadata(gi[cond])[cols] <- S4Vectors::elementMetadata(gi[cond])[cols[c(rbind(seq(2, length(cols), 2), seq(1, length(cols), 2)))]]
 
   return(gi)

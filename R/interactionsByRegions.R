@@ -7,7 +7,7 @@
 #' @param chr column name of chromosome values
 #' @param start column name of start positions
 #' @param end column name of end positions
-#' @param invert T/F if need those interactions that do NOT overlaps with any regions
+#' @param invert TRUE/FALSE if need those interactions that do NOT overlaps with any regions
 #'
 #' @return HiCaptuRe object filtered by regions, by default with additional columns regarding overlap on each node. If invert=T no additional columns. And an additional slot ByRegions with region-centric statistics
 #'
@@ -26,7 +26,7 @@
 #' interactions_regions <- interactionsByRegions(interactions = interactions, regions = regions)
 #'
 #' @export
-interactionsByRegions <- function(interactions, regions, chr = NULL, start = NULL, end = NULL, invert = F) {
+interactionsByRegions <- function(interactions, regions, chr = NULL, start = NULL, end = NULL, invert = FALSE) {
 
   if (is(regions, "GRanges")) {
     regions_name <- deparse(substitute(regions))
@@ -37,15 +37,15 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
     ## Reading regions and transforming to Genomic Ranges
     if (!is.null(chr) & !is.null(start) & !is.null(end)) ## If the file has header
       {
-        regions_df <- data.table::fread(regions, header = T)
-        regionsGR <- GenomicRanges::makeGRangesFromDataFrame(regions_df, seqnames.field = chr, start.field = start, end.field = end, keep.extra.columns = T)
+        regions_df <- data.table::fread(regions, header = TRUE)
+        regionsGR <- GenomicRanges::makeGRangesFromDataFrame(regions_df, seqnames.field = chr, start.field = start, end.field = end, keep.extra.columns = TRUE)
       } else if (is.null(chr) & is.null(start) & is.null(end)) ## If the file has not header
       {
         chr <- "V1"
         start <- "V2"
         end <- "V3"
         regions_df <- data.table::fread(regions)
-        regionsGR <- GenomicRanges::makeGRangesFromDataFrame(regions_df, seqnames.field = chr, start.field = start, end.field = end, keep.extra.columns = T)
+        regionsGR <- GenomicRanges::makeGRangesFromDataFrame(regions_df, seqnames.field = chr, start.field = start, end.field = end, keep.extra.columns = TRUE)
       } else ## Message if the arguments are no correctly filled
     {
       stop("chr, start, end arguments must be all filled if regions file has a header")
@@ -79,12 +79,12 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
           fragmentAnnot = paste(unique(B.id), collapse = ",")
         )
 
-      byregions <- makeGRangesFromDataFrame(merge(regionsGR, df, by = "regionID", all = T), keep.extra.columns = T)
+      byregions <- makeGRangesFromDataFrame(merge(regionsGR, df, by = "regionID", all = TRUE), keep.extra.columns = TRUE)
     } else {
       byregions <- regionsGR
       S4Vectors::elementMetadata(byregions) <- cbind(S4Vectors::elementMetadata(byregions), data.frame(Nfragment = NA, NOE = NA, fragmentID = NA, fragmentAnnot = NA))
     } ## end if/else length == interactions
-  } ## end if invert T
+  } ## end if invert TRUE
   else {
     ## Subseting ibed by overlap with regions
     interactions_regions <- unique(IRanges::subsetByOverlaps(interactions, regionsGR, invert = invert))
@@ -99,13 +99,13 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
         dplyr::rename(ID_1 = fragmentID) |>
         dplyr::group_by(ID_1) |>
         dplyr::reframe(
-          region_1 = T,
+          region_1 = TRUE,
           Nregion_1 = dplyr::n(),
           regionID_1 = paste(regionID, collapse = ","),
           regionCov_1 = sum(intersect)
         )
 
-      m1 <- merge(S4Vectors::elementMetadata(interactions_regions), df1, all = T)
+      m1 <- merge(S4Vectors::elementMetadata(interactions_regions), df1, all = TRUE)
 
 
       anchor2 <- suppressWarnings(unique(IRanges::mergeByOverlaps(GenomicInteractions::anchorTwo(interactions), regionsGR)))
@@ -117,25 +117,25 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
         dplyr::rename(ID_2 = fragmentID) |>
         dplyr::group_by(ID_2) |>
         dplyr::reframe(
-          region_2 = T,
+          region_2 = TRUE,
           Nregion_2 = dplyr::n(),
           regionID_2 = paste(regionID, collapse = ","),
           regionCov_2 = sum(intersect)
         )
 
-      m2 <- merge(S4Vectors::elementMetadata(interactions_regions), df2, all = T)
+      m2 <- merge(S4Vectors::elementMetadata(interactions_regions), df2, all = TRUE)
 
       m <- merge(m1, m2, by = colnames(S4Vectors::elementMetadata(interactions_regions)))
       m <- m[order(m$ID_1, m$ID_2), ]
-      m$region_1[is.na(m$region_1)] <- F
-      m$region_2[is.na(m$region_2)] <- F
+      m$region_1[is.na(m$region_1)] <- FALSE
+      m$region_2[is.na(m$region_2)] <- FALSE
       m$Nregion_1[is.na(m$Nregion_1)] <- 0
       m$Nregion_2[is.na(m$Nregion_2)] <- 0
       m$regionCov_1[is.na(m$regionCov_1)] <- 0
       m$regionCov_2[is.na(m$regionCov_2)] <- 0
 
 
-      if (all(as.data.frame(m[, 1:ncol(S4Vectors::elementMetadata(interactions_regions))]) == as.data.frame(S4Vectors::elementMetadata(interactions_regions)), na.rm = T)) {
+      if (all(as.data.frame(m[, 1:ncol(S4Vectors::elementMetadata(interactions_regions))]) == as.data.frame(S4Vectors::elementMetadata(interactions_regions)), na.rm = TRUE)) {
         S4Vectors::elementMetadata(interactions_regions) <- m
       } else {
         stop("Data order is not correct. Maybe some bait was initially clasified as Other-End")
@@ -166,12 +166,12 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
 
       df <- merge(mfinal, df, by = "regionID")
 
-      byregions <- GenomicRanges::makeGRangesFromDataFrame(merge(regionsGR, df, by = "regionID", all = T), keep.extra.columns = T)
+      byregions <- GenomicRanges::makeGRangesFromDataFrame(merge(regionsGR, df, by = "regionID", all = TRUE), keep.extra.columns = TRUE)
     } else {
       byregions <- regionsGR
       S4Vectors::elementMetadata(byregions) <- cbind(S4Vectors::elementMetadata(byregions), data.frame(Nfragment = NA, NOE = NA, fragmentID = NA, fragmentAnnot = NA))
     } ## end if/else length == != 0
-  } ## end else invert F
+  } ## end else invert FALSE
   # updating slots
 
   ByRegions_list <- getByRegions(interactions_regions)

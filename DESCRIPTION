@@ -11,7 +11,7 @@ Description: Capture Hi-C is a set of techniques that enable the detection of ge
 BugReports: https://github.com/LaureTomas/HiCaptuRe/issues
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 Depends:
 Imports:
     Biostrings,
@@ -47,5 +47,6 @@ biocViews:
     Epigenetics,
     HiC,
     Sequencing, 
+    DataImport,
     Software
 VignetteBuilder: knitr

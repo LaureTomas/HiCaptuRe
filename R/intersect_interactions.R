@@ -30,7 +30,7 @@
 #' intersection <- intersect_interactions(interactions_list = interactions_list)
 #'
 #' @export
-intersect_interactions <- function(interactions_list, distance.boxplot = F, ...) {
+intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, ...) {
   param <- lapply(interactions_list, function(x) getParameters(x)$digest)
 
   are_identical <- all(sapply(param[-1], function(x) identical(param[[1]], x)))
@@ -80,7 +80,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = F, ...)
 
     ## Based on the function FromList from UpSetR package
     ## Generate a dataframe with the intersection and the distance of each interaction
-    elements1 <- unlist(la, use.names = T)
+    elements1 <- unlist(la, use.names = TRUE)
     names(elements1) <- gsub("\\.", "", gsub(paste0(names(la), collapse = "|"), "", names(elements1)))
     elements <- unique(elements1)
     elements <- elements1[!duplicated(elements1)]
@@ -90,7 +90,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = F, ...)
     data[is.na(data)] <- as.integer(0)
     data[data != 0] <- as.integer(1)
 
-    data <- data.frame(matrix(data, ncol = length(la), byrow = F))
+    data <- data.frame(matrix(data, ncol = length(la), byrow = FALSE))
     data <- data[which(rowSums(data) != 0), ]
     names(data) <- names(la)
 
@@ -109,7 +109,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = F, ...)
     uplot <- suppressWarnings(UpSetR::upset(UpSetR::fromList(la), nsets = length(interactions_list), mainbar.y.label = "# Interactions", sets.x.label = "# Interactions", ...))
   }
 
-  venn_plot <- gplots::venn(la, show.plot = F)
+  venn_plot <- gplots::venn(la, show.plot = FALSE)
 
   if (length(la) < 8) {
     ggvenn <- ggVennDiagram::ggVennDiagram(la, label_percent_digit = 2)

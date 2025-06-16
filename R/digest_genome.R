@@ -29,7 +29,7 @@
 #'
 #'
 #' @export
-digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, cut_position = NULL, select_chr = c(1:22, "X", "Y"), PAR_mask = T, PAR_file = NULL, ...) {
+digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, cut_position = NULL, select_chr = c(1:22, "X", "Y"), PAR_mask = TRUE, PAR_file = NULL, ...) {
   # Define enzyme database
   enzyme_db <- list(
     HindIII = list(motif = "AAGCTT", cut_position = 1),
@@ -78,13 +78,13 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
     if (is.null(PAR_file)) {
       PAR_file <- system.file("extdata", paste0("PAR_", gsub(" ", "_", metadata(genome)$organism), "_coordinates.txt"), package = "HiCaptuRe")
       if (file.exists(PAR_file)) {
-        PAR <- read.delim(PAR_file, header = T, ...)
+        PAR <- read.delim(PAR_file, header = TRUE, ...)
       } else {
         stop(paste("There is no PAR file provided for", metadata(genome)$organism, "\n It must be a headed file with seqnames,start,end columns"))
       }
     } else {
       if (file.exists(PAR_file)) {
-        PAR <- read.delim(PAR_file, header = T, ...)
+        PAR <- read.delim(PAR_file, header = TRUE, ...)
       } else {
         stop("The PAR file provided doesn't exist")
       }

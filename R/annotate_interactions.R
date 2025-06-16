@@ -16,20 +16,19 @@
 #'
 #'
 #' @examples
-#' annotation <- system.file("extdata", "annotation_example.txt", package="HiCaptuRe")
-#' ibed1 <- system.file("extdata", "ibed1_example.zip", package="HiCaptuRe")
+#' annotation <- system.file("extdata", "annotation_example.txt", package = "HiCaptuRe")
+#' ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
 #' interactions <- load_interactions(ibed1, select_chr = "19")
 #' interactions <- annotate_interactions(interactions = interactions, annotation = annotation)
 #'
-#'
 #' @export
 annotate_interactions <- function(interactions, annotation, ...) {
-  if (any(class(annotation) == "data.frame")) {
+  if (any(methods::is(annotation, "data.frame"))) {
     annotation_file <- deparse(substitute(annotation))
   } else if (methods::is(annotation, "character")) {
     annotation_file <- normalizePath(annotation)
     ## Reading annotation file
-    annotation <- data.table::fread(annotation, stringsAsFactors = F, ...)
+    annotation <- data.table::fread(annotation, stringsAsFactors = FALSE, ...)
   }
 
   ## Checking if file has 5 columns
@@ -39,7 +38,7 @@ annotate_interactions <- function(interactions, annotation, ...) {
     ## Making a GRanges from the annotation and setting the NA as non-annotated
     cn <- colnames(annotation)
     annotation[[cn[5]]][is.na(annotation[[cn[5]]])] <- "non-annotated"
-    annotationGR <- GenomicRanges::makeGRangesFromDataFrame(annotation, seqnames.field = cn[1], start.field = cn[2], end.field = cn[3], keep.extra.columns = T)
+    annotationGR <- GenomicRanges::makeGRangesFromDataFrame(annotation, seqnames.field = cn[1], start.field = cn[2], end.field = cn[3], keep.extra.columns = TRUE)
 
     ## Creating annotation list
     annot <- GenomicRanges::split(annotationGR[, -1], as.factor(annotation[[cn[5]]]))
