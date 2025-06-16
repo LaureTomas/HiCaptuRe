@@ -19,3 +19,10 @@ The returned object includes a filtered set of interactions and updates the ByBa
 \description{
 This function filters a HiCaptuRe object from load_interactions by a set of given bait(s)
 }
+\examples{
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions <- load_interactions(ibed1, select_chr = "19")
+baits <- c("ENST00000332235", "ENST00000516525")
+interactions_baits <- interactionsByBaits(interactions = interactions, baits = baits)
+
+}

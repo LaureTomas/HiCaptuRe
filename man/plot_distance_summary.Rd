@@ -20,3 +20,10 @@ This function plots the distances by different approaches for the output of dist
 \details{
 The type_of_value argument could be: Absolute: plots the Absolute number of interactions. By_int_type: plots the number of interactions divided by the total number of interactions of each type. By_total: plots the number of interactions divided by the total number of interactions
 }
+\examples{
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions1 <- load_interactions(ibed1, select_chr = "19")
+df <- distance_summary(interactions = interactions1)
+plots <- plot_distance_summary(distances = df)
+
+}

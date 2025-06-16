@@ -4,12 +4,20 @@
 \name{HiCaptuRe-package}
 \alias{HiCaptuRe}
 \alias{HiCaptuRe-package}
-\title{HiCaptuRe: In-house R package for Capture Hi-C data handling}
+\title{HiCaptuRe: HiCaptuRe: Manipulating and integrating Capture Hi-C data}
 \description{
-Package for dealing with liCHi-C data in Javierre Lab.
+Capture Hi-C is a set of techniques that enable the detection of genomic interactions involving regions of interest, known as baits. By focusing on selected loci, these approaches reduce sequencing costs while maintaining high resolution at the level of restriction fragments. HiCaptuRe provides tools to import, annotate, manipulate, and export Capture Hi-C data. The package accounts for the specific structure of bait–otherEnd interactions, facilitates integration with other omics datasets, and enables comparison across samples and conditions.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/LaureTomas/HiCaptuRe}
+  \item Report bugs at \url{https://github.com/LaureTomas/HiCaptuRe/issues}
+}
+
 }
 \author{
-\strong{Maintainer}: Laureano Tomas-Daza \email{ltomas@carrerasresearch.org}
+\strong{Maintainer}: Laureano Tomas-Daza \email{lauretomas@gmail.com} (\href{https://orcid.org/0000-0002-6127-1694}{ORCID})
 
 }
 \keyword{internal}

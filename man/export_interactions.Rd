@@ -8,9 +8,9 @@ export_interactions(
   interactions,
   file,
   format = "ibed",
-  over.write = F,
+  over.write = FALSE,
   cutoff = 5,
-  parameters = F
+  parameters = FALSE
 )
 }
 \arguments{
@@ -20,11 +20,11 @@ export_interactions(
 
 \item{format}{type of output format (ibed, peakmatrix, washU, washUold, cytoscape, bedpe, seqmonk)}
 
-\item{over.write}{T/F to over write the output file}
+\item{over.write}{TRUE/FALSE to over write the output file}
 
 \item{cutoff}{Chicago score cutoff to export interactions}
 
-\item{parameters}{T/F to also export the parameters of the given object}
+\item{parameters}{TRUE/FALSE to also export the parameters of the given object}
 }
 \value{
 tibble object with the ibed table and save it in the desired output file
@@ -33,7 +33,7 @@ tibble object with the ibed table and save it in the desired output file
 This function exports interactions in different formats
 }
 \examples{
-\dontrun{
+\donttest{
 export_interactions(interactions, file = "output.ibed", format = "ibed", over.write = TRUE)
 }
 }

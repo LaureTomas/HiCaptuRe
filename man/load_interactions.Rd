@@ -19,3 +19,8 @@ HiCaptuRe object
 \description{
 This function loads interaction files from Chicago R package into a GenomicInteractions Object, and remove possible duplicated interactions
 }
+\examples{
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions <- load_interactions(ibed1, select_chr = "19")
+
+}

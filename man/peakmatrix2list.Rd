@@ -17,3 +17,9 @@ A named list of \code{HiCaptuRe} objects, each corresponding to a sample (inferr
 \description{
 This function creates a list of HiCaptuRe objects separating all the samples included on a peakmatrix.
 }
+\examples{
+peakmatrix <- system.file("extdata", "peakmatrix_example.zip", package = "HiCaptuRe")
+interactions <- load_interactions(peakmatrix, select_chr = "19")
+interactions_list <- peakmatrix2list(peakmatrix = interactions)
+
+}

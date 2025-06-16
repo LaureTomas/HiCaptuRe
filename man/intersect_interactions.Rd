@@ -4,7 +4,7 @@
 \alias{intersect_interactions}
 \title{Computes the intersect between a list of interactions objects}
 \usage{
-intersect_interactions(interactions_list, distance.boxplot = F, ...)
+intersect_interactions(interactions_list, distance.boxplot = FALSE, ...)
 }
 \arguments{
 \item{interactions_list}{list of HiCaptuRe objects from \code{\link{load_interactions}}}
@@ -23,4 +23,13 @@ A list with:
 }
 \description{
 This function computes all the possible intersects for a given list of HiCaptuRe objects
+}
+\examples{
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions1 <- load_interactions(ibed1, select_chr = "19")
+ibed2 <- system.file("extdata", "ibed2_example.zip", package = "HiCaptuRe")
+interactions2 <- load_interactions(ibed2, select_chr = "19")
+interactions_list <- list(ibed1 = ibed1, ibed2 = ibed2)
+intersection <- intersect_interactions(interactions_list = interactions_list)
+
 }

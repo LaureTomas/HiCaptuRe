@@ -10,7 +10,7 @@ interactionsByRegions(
   chr = NULL,
   start = NULL,
   end = NULL,
-  invert = F
+  invert = FALSE
 )
 }
 \arguments{
@@ -24,11 +24,18 @@ interactionsByRegions(
 
 \item{end}{column name of end positions}
 
-\item{invert}{T/F if need those interactions that do NOT overlaps with any regions}
+\item{invert}{TRUE/FALSE if need those interactions that do NOT overlaps with any regions}
 }
 \value{
 HiCaptuRe object filtered by regions, by default with additional columns regarding overlap on each node. If invert=T no additional columns. And an additional slot ByRegions with region-centric statistics
 }
 \description{
 This function filters a HiCaptuRe object from load_interactions by overlaping regions
+}
+\examples{
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions <- load_interactions(ibed1, select_chr = "19")
+regions <- GenomicRanges::GRanges(seqnames = 19, ranges = IRanges(start = c(500000, 1000000), end = c(510000, 1100000)))
+interactions_regions <- interactionsByRegions(interactions = interactions, regions = regions)
+
 }

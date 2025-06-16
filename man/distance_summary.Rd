@@ -19,3 +19,9 @@ list with 2 tables: short_int_dist_table and long_int_dist_table, with the numbe
 \description{
 This function computes the number of interactions by distance for a given GenomicInteractions object
 }
+\examples{
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions1 <- load_interactions(ibed1, select_chr = "19")
+df <- distance_summary(interactions = interactions1)
+
+}

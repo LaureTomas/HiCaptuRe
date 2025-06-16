@@ -19,3 +19,10 @@ HiCaptuRe object annotated, with columns bait_1 and bait_2 substituted based on 
 \description{
 This function annotate a HiCaptuRe object from load_interactions, based on a given annotations file
 }
+\examples{
+annotation <- system.file("extdata", "annotation_example.txt", package = "HiCaptuRe")
+ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+interactions <- load_interactions(ibed1, select_chr = "19")
+interactions <- annotate_interactions(interactions = interactions, annotation = annotation)
+
+}
