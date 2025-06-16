@@ -181,11 +181,11 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
         ByRegions_list[[length(ByRegions_list) + 1]] <- byregions
     }
 
-    interactions_regions <- setByRegions(interactions_regions, ByRegions_list)
+    interactions_regions <- .setByRegions(interactions_regions, ByRegions_list)
 
     param <- getParameters(interactions_regions)
     param[[paste0("ByRegions_", length(ByRegions_list))]] <- c(interactions = deparse(substitute(interactions)), regions = regions_name, chr = chr, start = start, end = end, invert = invert)
-    interactions_regions <- setParameters(interactions_regions, param)
+    interactions_regions <- .setParameters(interactions_regions, param)
 
     return(interactions_regions)
 }

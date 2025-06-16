@@ -71,11 +71,11 @@ interactionsByBaits <- function(interactions, baits, sep = ",") {
         bait_list[[length(bait_list) + 1]] <- baits_final
     }
 
-    interactions_baits <- setByBaits(interactions_baits, bait_list)
+    interactions_baits <- .setByBaits(interactions_baits, bait_list)
 
     param <- getParameters(interactions_baits)
     param[[paste0("ByBaits_", length(bait_list))]] <- c(interactions = deparse(substitute(interactions)), baits = paste(baits, collapse = ","), sep = sep)
-    interactions_baits <- setParameters(interactions_baits, param)
+    interactions_baits <- .setParameters(interactions_baits, param)
 
 
     return(interactions_baits)

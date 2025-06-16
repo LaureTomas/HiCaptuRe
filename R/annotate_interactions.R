@@ -70,7 +70,7 @@ annotate_interactions <- function(interactions, annotation, ...) {
 
         param <- getParameters(interactions)
         param$annotate <- c(annotation = annotation_file)
-        interactions <- setParameters(interactions, param)
+        interactions <- .setParameters(interactions, param)
         interactions <- interactions[order(interactions$ID_1, interactions$ID_2)]
 
         return(interactions)
@@ -80,7 +80,7 @@ annotate_interactions <- function(interactions, annotation, ...) {
 
 #' Annotates interactions into B_B or B_OE
 #'
-#' This function annotate a HiCaptuRe object based on the presence or not of annotation in a given restriction fragment
+#' This internal function annotate a HiCaptuRe object based on the presence or not of annotation in a given restriction fragment
 #'
 #' @param interactions HiCaptuRe object from \code{\link{load_interactions}}
 #'

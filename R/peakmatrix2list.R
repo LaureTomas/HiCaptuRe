@@ -34,7 +34,7 @@ peakmatrix2list <- function(peakmatrix, cutoff = 5) {
         sub_int <- peakmatrix[m[, x] >= cutoff, which(!1:ncol(m) %in% CS[CS != x])]
         names(GenomicRanges::mcols(sub_int))[6] <- "CS"
         parameters$peakmatrix2list <- c(split_by = names(m)[x])
-        sub_int <- setParameters(sub_int, parameters)
+        sub_int <- .setParameters(sub_int, parameters)
         sub_int
     })
 
