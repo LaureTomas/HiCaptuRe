@@ -1,151 +1,330 @@
 ---
 title: "HiCaptuRe Introduction"
 author: "Laureano Tomás-Daza"
-date: "2023-11-20"
+package: HiCaptuRe
+date: "2024-06-17"
 output: 
-  html_document:
-    css: style.css
-    theme: simplex
+  BiocStyle::html_document:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Introduction}
+  %\VignetteIndexEntry{0. Introduction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE,
+    comment = "#>"
 )
+library(knitr)
+library(kableExtra)
 ```
 
-# Introduction
+# Overview
 
-Welcome to HiCaptuRe, an R package for Capture Hi-C data management. In this vignette we will see the usage of all the functions of this package and some practical examples.
+HiCaptuRe is an R package designed to manage and analyze Capture Hi-C data, including high-resolution methods like liCHi-C. These approaches detect long-range genomic interactions involving selected regions of interest ("baits") by combining chromatin capture with targeted probe enrichment. The result is a cost-effective, fragment-level resolution map of genomic contacts.
 
-Before going into the actual functions of the package we first need to know were our data come from. Since we are interested in Capture Hi-C data, our final output will be pairs of regions of the genome that are in physical proximity, creating what we call an interaction or DNA loop.
+# Basic Vocabulary
 
-## 1. Basic vocabulary
+This section defines the key terms used throughout the HiCaptuRe package and Capture Hi-C analysis. Understanding this terminology is essential to correctly interpret the structure of interaction data and the functionality of the package.
 
-**Restriction fragment**: when the genome is digested by a restriction enzyme, which recognize an specific motif in the DNA, the result is the entire genome cut into pieces, these pieces are called restriction fragments
 
-**Hi-C**: briefly it's a 3C technique which allow to detect the interaction frequency between all the restriction fragments of the genome
+- **Restriction fragment**: A genomic interval resulting from digestion of the genome using a restriction enzyme that recognizes a specific DNA motif. These fragments define the resolution of interaction detection in Capture Hi-C data.
 
-**Capture Hi-C**: it's a variation of Hi-C where we enrich the library for specific interactions using designed oligos that hibridize with our regions of interest, therefore enriching the library in interactions containing at least one regions of interest.
+- **Hi-C**: A chromosome conformation capture (3C) technique that measures the interaction frequency between all pairs of restriction fragments genome-wide, creating a genome-wide contact map.
 
-**Bait**: it's any restriction fragment that we capture in Capture Hi-C, meaning, any restriction fragment that contains some feature of interest, i.e. promoters.
+- **Capture Hi-C**: A targeted variant of Hi-C that enriches for interactions involving specific genomic regions of interest. This is achieved using designed oligonucleotide probes (baits) that hybridize to the chosen regions, increasing sequencing coverage for relevant interactions.
 
-**Other-end**: They are the restriction fragments that are not captured, so the non bait fragments.
+- **Bait**: A restriction fragment targeted during the capture step (e.g., a promoter or enhancer). These fragments are considered the primary points of interest.
 
-**Interactome**: It's the whole set of interactions detected in a given sample
+- **Other end (OE)**: A restriction fragment that is not directly targeted during capture but is found interacting with a bait. It represents the uncaptured partner in a bait–OE interaction.
 
-**Anchor**: Each of the restriction fragments involved in an interaction
+- **Anchor**: One of the two restriction fragments involved in a detected interaction. Each interaction has two anchors: anchor1 and anchor2.
 
-## 2. Where does my data come from?
+- **Interaction**: A paired-end read (or its postprocessed equivalent) that represents a spatial interaction between two anchors. Depending on the annotation, this interaction may be bait–bait or bait–OE.
 
-If you don't know already what is Capture Hi-C (especially Promoter CHi-C and liCHi-C), here you can find some literature about it and how to analyse them:
+- **Interactome**: The complete set of interactions detected in a given sample. It can include various interaction classes depending on annotation completeness and data type.
 
--   [Promoter Capture Hi-C: High-resolution, Genome-wide Profiling of Promoter Interactions](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6102006/pdf/jove-136-57320.pdf)
+- **Interaction types**:
+  - **Bait–Bait (B_B)**: Both anchors are bait fragments.
+  - **Bait–OtherEnd (B_OE)**: One anchor is a bait, the other is not.
 
--   [Detecting chromosomal interactions in Capture Hi-C data with CHiCAGO and companion tools](https://www.nature.com/articles/s41596-021-00567-5)
+- **Chicago Score**: A statistical score assigned to each interaction (e.g., by the CHiCAGO method) to assess confidence or interaction strength. This score is often included in peakmatrix or ibed formats.
 
--   [Low input capture Hi-C (liCHi-C) identifies promoter-enhancer interactions at high-resolution](https://www.nature.com/articles/s41467-023-35911-8)
 
-Basically the idea behind any Capture Hi-C technique is to enrich the Hi-C library in specific baits (i.e. promoters) using designed oligos, to increase the resolution of Hi-C and finally obtaining interactions at the restriction-fragment resolution.
+# Data Origin and Experimental Workflow
 
-There are several softwares that can be used to perform the preprocessing of this type of data and to call significant interactions. The workflow that we follow is represented below:
+HiCaptuRe is designed to support workflows based on data generated using the **Capture Hi-C** experimental pipeline. This typically includes:
 
-![**Schematic Workflow of CHI-C**](workflow.png)
+1. **Chromatin conformation capture (3C)**:
+   Crosslinked DNA is digested with a restriction enzyme (e.g., HindIII) and religated to form hybrid DNA molecules that reflect spatial proximity in the nucleus.
 
-Once the libraries are sequenced we analyse the FASTQ files with HICUP, which aligns our data to the reference genome and removes several artefacts of the technique. Once we get our filtered BAM file from HICUP, we calculate the capture efficiency of the protocol and we only select those paired reads that are captured at least at one end. Finally, we run the Chicago pipeline, which performs the interactions calling based on the distributions of reads around our baits.
+2. **Capture enrichment**:
+   A key step in Capture Hi-C is the hybridization of biotinylated oligonucleotide probes to regions of interest (e.g., promoters). This enriches the library for interactions involving those "bait" fragments.
 
-## 3. Main Chicago Outputs
+3. **Library preparation and sequencing**:
+   The ligated DNA is sheared and sequenced to detect paired-end reads representing interactions between restriction fragments.
 
-When you run Chicago you can get the results in 3 different formats:
+4. **Read mapping and fragment-level assignment with HiCUP**:
+   The [HiCUP](https://www.bioinformatics.babraham.ac.uk/projects/hicup/) pipeline aligns paired-end Hi-C reads to the reference genome, filters out invalid pairs (e.g., self-ligations, circularized reads, fragments too close), and assigns them to restriction fragments. It also distinguishes between capture and non-capture reads to assess **capture efficiency**. The output is a filtered BAM file.
 
-#### **washU_text**
+5. **Interactions calling with CHiCAGO**:
+   The [CHiCAGO](https://bioconductor.org/packages/release/bioc/html/Chicago.html) method assigns confidence scores to each interaction using a background model that accounts for distance and biases in Capture Hi-C. These scores (e.g., “CS”) are commonly included in `ibed` or `peakmatrix` files and used as thresholds for downstream filtering.
+
+HiCaptuRe works downstream of this pipeline, assuming that a **interactions file** is already available.
+
+You can use HiCaptuRe to annotate, filter, and format these interactions.
+
+# Capture Hi-C Data Formats (some CHiCAGO outputs)
+
+HiCaptuRe supports multiple file formats generated by the [CHiCAGO](https://bioconductor.org/packages/Chicago) pipeline and related tools. These formats vary in structure, completeness, and intended use. Below, we describe each format supported by HiCaptuRe.
+
+For detailed explanations of how these files are generated and used within the CHiCAGO pipeline, please refer to the [CHiCAGO Bioconductor vignette](https://bioconductor.org/packages/release/bioc/vignettes/Chicago/inst/doc/Chicago.html).
+
+
+## **interBed - ibed** — Recommended Format
 
 ```         
-##                  V1                  V2   V3  
-## chr20,119103,138049 chr20,523682,536237 6.00  
-## chr20,161620,170741   chr20,73978,76092 5.17  
-## chr20,233983,239479 chr20,206075,209203 5.35  
+  bait_chr bait_start bait_end         bait_name otherEnd_chr otherEnd_start otherEnd_end otherEnd_name N_reads score
+1       19     290159   302184             PLPP2           19         343893       369651         MIER2      21  6.07
+2       19     290159   302184             PLPP2           19         370987       379828          THEG      15  7.00
+3       19     290159   302184             PLPP2           19         402130       410516        C2CD4C      10  5.60
+4       19     343893   369651             MIER2           19         530387       539467         CDC34       5  7.83
+5       19     506618   515156 TPGS1,MADCAM1-AS1           19         530387       539467         CDC34      18 11.40
 ```
+- **Purpose**: Standardized and complete interaction format used throughout CHiCAGO pipelines. Recommended for HiCaptuRe workflows.
 
--   It's the format used to upload your data to the [WashU Browser](https://epigenomegateway.wustl.edu/)\
--   It consists in 3 columns: coordinates of the first end, coordinates of the second end and Chicago score.
+- **Structure**: Each row represents a single interaction between a bait and another fragment (bait or other-end).
 
-#### **seqMonk**
+- **Columns**:
+  - `bait_chr`, `bait_start`, `bait_end`: genomic location of the bait fragment
+  - `bait_name`: name or annotation of the bait
+  - `otherEnd_chr`, `otherEnd_start`, `otherEnd_end`: genomic location of the interacting other-end
+  - `otherEnd_name`: name or annotation of the OE fragment
+  - `N_reads`: number of supporting reads
+  - `score`: CHiCAGO score for the interaction
+
+## **peakmatrix** — Multi-sample Interaction Matrix
+
+This format is generated by the `makePeakMatrix.R` script in CHiCAGO Tools and is commonly used in high-throughput CHi-C experiments such as liCHi-C.
 
 ```         
-## V1     V2     V3      V4 V5   V6
-## 20 119103 138049 DEFB126  6 6.00
-## 20 523682 536237 CSNK2A1  6 6.00
-## 20 161620 170741 DEFB128 16 5.17  
-## 20  73978  76092       . 16 5.17
+  baitChr baitStart baitEnd baitID baitName oeChr oeStart  oeEnd oeID oeName   dist  sample1  sample2
+1      19    290159  302184     67    PLPP2    19  343893 369651   75  MIER2  60600 6.072719 3.028272
+2      19    290159  302184     67    PLPP2    19  370987 379828   77   THEG  79236 7.004499 3.122154
+3      19    290159  302184     67    PLPP2    19  402130 410516   80 C2CD4C 110151 5.600691 7.393738
+4      19    343893  369651     75    MIER2    19  530387 539467   92  CDC34 178155 7.829787 4.538076
+5      19    370987  379828     77     THEG    19  450586 456228   84      .  77999 2.356043 5.501240
 ```
 
--   It's the format used to upload your data to the [seqMonk](https://www.bioinformatics.babraham.ac.uk/projects/seqmonk/) software developed in the Babraham Institute.
--   An interaction is represented by two rows: the first row is the bait, the second the other end\
--   It consists of 6 columns: chromosome, start, end, annotation, read number and Chicago score.
+- **Purpose**: Compact matrix storing CHiCAGO scores across multiple samples.
 
-#### **interBed - ibed**
+- **Structure**:
+  - Each row represents a single interaction between a bait and another fragment (bait or other-end).
+  - Additional columns store sample-specific CHiCAGO scores
+
+- **Columns**:
+  - `baitChr`, `baitStart`, `baitEnd`, `baitID`, `baitName`: genomic coordinates, ID, and annotation of the bait fragment
+  - `oeChr`, `oeStart`, `oeEnd`, `oeID`, `oeName`: genomic coordinates, ID, and annotation of the other-end fragment
+  - `dist`: genomic distance between bait and OE
+  - `sampleX`: CHiCAGO interaction score for sample X (e.g., `sample1`, `sample2`, ...)
+
+## **seqMonk** — Two-row Interaction Format
 
 ```         
-##   bait_chr bait_start bait_end                  bait_name otherEnd_chr
-## 1       20     119103   138049                    DEFB126           20
-## 2       20     161620   170741                    DEFB128           20
-##   otherEnd_start otherEnd_end otherEnd_name N_reads score
-## 1         523682       536237       CSNK2A1       6  6.00
-## 2          73978        76092             .      16  5.17
+  V1     V2     V3     V4 V5   V6
+1 19 343893 369651  MIER2 21 6.07
+2 19 290159 302184  PLPP2 21 6.07
+3 19 370987 379828   THEG 15 7.00
+4 19 290159 302184  PLPP2 15 7.00
 ```
 
--   It's the most standard format
--   Each row represents an interaction
--   First 4 columns give information about the chromosome, start, end and name of the bait fragment
--   Next 4 columns give information about the chromosome, start, end and name of the other end that interacts with the bait fragment
--   N_reads is the number of reads
--   Score is the Chicago score
+- **Purpose**: Used for visualization in [SeqMonk](https://www.bioinformatics.babraham.ac.uk/projects/seqmonk/). It's an output of ChICAGO.
 
-For more information check the Chicago package [vignette](https://www.bioconductor.org/packages/release/bioc/vignettes/Chicago/inst/doc/Chicago.html) or its [bitbucket](https://bitbucket.org/chicagoTeam/chicago/src/master/).
+- **Structure**:
+  - Each interaction is split across **two consecutive rows**:
+    - First row = bait fragment
+    - Second row = other end (OE)
 
-### 3.1. Extra Chicago Output
+- **Columns**:
+  - `V1`: chromosome where the fragment is located
+  - `V2`: start coordinate of the fragment
+  - `V3`: end coordinate of the fragment
+  - `V4`: name or identifier of the fragment (e.g., gene symbol or `.`)
+  - `V5`: number of reads supporting the interaction
+  - `V6`: confidence score assigned by the CHiCAGO method
 
-#### **peakmatrix**
-
-To obtain this output you need to run the script `makePeakMatrix.R` from the Chicago Tools available in its bitbucket.
+## **bedpe ** — Generic Paired-End Interaction Format
 
 ```         
-##   baitChr baitStart baitEnd baitID                        baitName oeChr oeStart   oeEnd oeID
-## 1       1    896515  912788    237 ENST00000448179,ENST00000607769     1  915239  938701  239
-## 2       1    896515  912788    237 ENST00000448179,ENST00000607769     1  954044  968260  242
-## 3       1    896515  912788    237 ENST00000448179,ENST00000607769     1  968261  992014  243
-
-##    oeName
-## 1    ENST00000616016,ENST00000618323,ENST00000437963,ENST00000342066,ENST00000616125,ENST00000618779,ENST00000622503,ENST00000618181,ENST00000617307,ENST00000341065,ENST00000609207,ENST00000417705,ENST00000432961
-## 2    ENST00000379410,ENST00000379407,ENST00000379409,ENST00000338591,ENST00000622660,ENST00000463212,ENST00000466300,ENST00000481067,ENST00000327044,ENST00000477976,ENST00000487214,ENST00000469563
-## 3    ENST00000480267,ENST00000491024,ENST00000341290,ENST00000479361,ENST00000433179
-
-##       dist    sample1   sample2    sample3    sample4
-## 1    22319 49.7986643 30.740077 34.5393049 13.1090636
-## 2    56501  6.4405107  2.914006  2.3147820  0.3678843
-## 3    75486 11.1285715  8.785398  9.4215783  2.9546315
+  V1     V2     V3 V4     V5     V6 V7    V8 V9 V10
+1 19 290159 302184 19 343893 369651  1  6.07  *   *
+2 19 290159 302184 19 370987 379828  2  7.00  *   *
+3 19 290159 302184 19 402130 410516  3  5.60  *   *
+4 19 343893 369651 19 530387 539467  4  7.83  *   *
+5 19 506618 515156 19 530387 539467  5 11.40  *   *
 ```
 
--   Each row represents an interaction
--   First 5 columns give information about the chromosome, start, end, restriction fragment ID and name of the bait fragment
--   Next 5 columns give information about the chromosome, start, end, restriction fragment ID and name of the other end that interacts with the bait fragment
--   dist is the distance of the interaction
--   extra columns with the Chicago score in each sample
+- **Purpose**: A generic paired-end BED format used to describe interactions between two genomic regions. Supported by many tools but lacks bait/OE annotations. HiCaptuRe can import and annotate this format using `annotate_interactions()`.
 
-## 4. Example data
+- **Structure**:
+  - Each row represents a single interaction between two genomic fragments
+  - First six columns specify the coordinates of both anchors
+  - Additional columns can include interaction metadata (e.g., ID, score)
 
-In this package you can find several example data files to play around with HiCaptuRe.
+- **Columns**:
+  - `V1`, `V2`, `V3`: chromosome, start, and end of the first anchor
+  - `V4`, `V5`, `V6`: chromosome, start, and end of the second anchor
+  - `V7`: interaction ID (or row number)
+  - `V8`: interaction score (e.g., CHiCAGO score)
+  - `V9`, `V10`: optional fields (can include strand, annotations, or unused placeholders)
 
-These example files came from liCHi-C data using a promoter capture approach.
+## **washU ** — Minimal Format for Browser Upload
 
--   **ibed1_example.ibed** and **ibed2_example.ibed**: output of Chicago in ibed format
--   **annotation_example.txt**: annotation file for each HindIII fragment with gene_name
--   **regions_example.bed**: bed file with regions obtained from some omic analysis (ChIP-seq, ATAC-seq,...)
+```         
+     V1     V2     V3                       V4
+1 chr19 290159 302184 chr19:343893-369651,6.07
+2 chr19 290159 302184    chr19:370987-379828,7
+3 chr19 290159 302184  chr19:402130-410516,5.6
+4 chr19 343893 369651 chr19:530387-539467,7.83
+5 chr19 506618 515156 chr19:530387-539467,11.4
+```
+
+- **Purpose**: Used for uploading interaction data to the [WashU Epigenome Browser](https://epigenomegateway.wustl.edu/). Supported as an input format in HiCaptuRe.
+
+- **Structure**:
+  - Each row represents a single interaction between two genomic regions
+  - Minimal format with no bait/OE annotation
+  - The first region is split into separate columns (`chr`, `start`, `end`)
+  - The second region and score are combined into a single string
+
+- **Columns**:
+  - `V1`: chromosome of the first anchor
+  - `V2`: start coordinate of the first anchor
+  - `V3`: end coordinate of the first anchor
+  - `V4`: second anchor and CHiCAGO score (or any value) in the format `chr:start-end,score`
+
+## **washUold ** — (Legacy)
+
+```         
+                   V1                  V2    V3
+1 chr19:290159,302184 chr19:343893,369651  6.07
+2 chr19:290159,302184 chr19:370987,379828  7.00
+3 chr19:290159,302184 chr19:402130,410516  5.60
+4 chr19:343893,369651 chr19:530387,539467  7.83
+5 chr19:506618,515156 chr19:530387,539467 11.40
+```
+- **Purpose**: Legacy version of the WashU browser format with both anchors encoded as strings. Supported for backward compatibility in HiCaptuRe.
+
+- **Structure**:
+  - Each row represents a single interaction between two genomic regions
+  - Both anchors are stored as combined strings with embedded coordinates
+  - Includes CHiCAGO score (or any value)
+
+- **Columns**:
+  - `V1`: first anchor in the format `chr:start,end`
+  - `V2`: second anchor in the format `chr:start,end`
+  - `V3`: CHiCAGO score (or any value)
+
+## Summary
+```{r,echo=FALSE}
+# Define the table with emojis in logical columns
+format_table <- data.frame(
+    Format = c("`ibed`", "`peakmatrix`", "`seqMonk`", "`bedpe`", "`washU`", "`washUold`"),
+    `Recommended Use` = c(
+        "Standard HiCaptuRe input",
+        "High-throughput liCHi-C",
+        "Visualization in SeqMonk",
+        "Generic interaction input/output",
+        "WashU browser upload",
+        "Legacy WashU format"
+    ),
+    `Bait/OE Annotation` = c("✅", "✅", "✅ (split rows)", "❌", "❌", "❌"),
+    `CHiCAGO Score` = c("✅", "✅", "✅", "✅", "✅ (embedded)", "✅"),
+    `Multi-sample` = c("❌", "✅", "❌", "❌", "❌", "❌"),
+    check.names = FALSE
+)
+
+# Render the table
+kable(format_table,
+    format = "html", escape = FALSE,
+    caption = "Summary of Supported Data Formats in HiCaptuRe"
+) %>%
+    kable_styling(
+        bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+        full_width = FALSE, position = "center"
+    ) %>%
+    row_spec(0, extra_css = "text-align: center;")
+```
+
+
+# The HiCaptuRe Object
+
+HiCaptuRe wraps a `GenomicInteractions` object and adds slots and metadata specific to Capture Hi-C. This provides:
+
+- Compatibility with Bioconductor tools
+- Storage of interaction classification
+- Ability to record processing parameters and filtering operations
+
+📦 Slots include:
+
+- `parameters`: stores info about the digest, input file, annotations and different functions used
+- `ByBaits`: optional list of bait-level summaries
+- `ByRegions`: optional list of region-level summaries
+
+
+# Typical Workflow
+
+A typical HiCaptuRe workflow consists of the following steps:
+
+1. **Digest the genome** using a restriction enzyme (e.g., HindIII)
+2. **Load an interaction file** in ibed or any compatible format
+3. **Annotate interactions** using bait fragment annotations
+4. **Subset by bait(s) or external regions** (e.g., enhancers)
+5. **Export** the processed interactions to standard formats (e.g., ibed, WashU)
+
+Each step is designed to work with genomic data in a modular and reproducible way.
+
+
+# Example Data
+The HiCaptuRe package includes example files to illustrate how to load, annotate, and manipulate Capture Hi-C interaction data. These files are bundled under the `inst/extdata/` directory and can be accessed using `system.file()`.
+
+📄 Available Files  
+
+- **`ibed1_example.zip`**:  
+  A ZIP archive containing a standard ibed-formatted interaction file from a sample experiment. Suitable for testing basic `load_interactions()` and `annotate_interactions()` functions.
+
+- **`ibed2_example.zip`**:  
+  A second ibed-formatted interaction dataset, useful for comparing samples or testing interaction intersection with `intersect_interactions()`.
+
+- **`peakmatrix_example.zip`**:  
+  Contains a multi-sample interaction matrix in `peakmatrix` format, as typically generated by CHiCAGO Tools. Can be used to test `load_interactions()` with multi-sample support and downstream summarization.
+
+- **`annotation_example.txt`**:  
+  A tab-delimited file with bait annotations (coordinates and identifiers) used to annotate interaction data. Intended for use with `annotate_interactions()` after genome digestion.
+
+📥 How to Load the Example Files
+```{r}
+ibed1_file <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
+ibed2_file <- system.file("extdata", "ibed2_example.zip", package = "HiCaptuRe")
+peakmatrix_file <- system.file("extdata", "peakmatrix_example.zip", package = "HiCaptuRe")
+annotation_file <- system.file("extdata", "annotation_example.txt", package = "HiCaptuRe")
+```
+
+These files are small and optimized for fast loading during examples and tests.
+
+# 📚  References
+
+- Schoenfelder, S., Javierre, B. M. *et al.* *Promoter Capture Hi-C: High-resolution, genome-wide profiling of promoter interactions*.  J Vis Exp. 2018;(136):57320. https://doi.org/10.3791/57320
+
+- Freire-Pritchett, P., Ray-Jones, H. *et al.*  *Detecting chromosomal interactions in Capture Hi-C data with CHiCAGO and companion tools*.  Nat Protoc. 2021;16:4144–4176. https://doi.org/10.1038/s41596-021-00567-5
+
+- Tomás-Daza, L., Rovirosa, L. *et al.*  *Low input capture Hi-C (liCHi-C) identifies promoter–enhancer interactions at high resolution*.  Nat Commun. 2023;14:268. https://doi.org/10.1038/s41467-023-35911-8
+
+# SessionInfo
+
+```{r}
+sessionInfo()
+```
