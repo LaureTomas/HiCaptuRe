@@ -61,7 +61,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
                 int_list <- interactions
                 files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
                 export_function <- .export_dispatch(format)
-                mapply(export_function, int_list, files)
+                invisible(mapply(export_function, int_list, files))
             } else {
                 interactions <- interactions[interactions$CS >= cutoff]
                 export_function <- .export_dispatch(format)
@@ -72,7 +72,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
             int_list <- peakmatrix2list(peakmatrix = interactions, cutoff = cutoff)
             files <- paste0(sub("\\.[^\\.]*$", "", file), "_", names(int_list), gsub(".*\\.", ".", basename(file)))
             export_function <- .export_dispatch(format)
-            mapply(export_function, int_list, files)
+            invisible(mapply(export_function, int_list, files))
         }
     } else {
         interactions <- interactions[interactions$CS >= cutoff]
@@ -151,6 +151,10 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 }
 
 .export_bedpe <- function(ints, file) {
+    if (length(ints) == 0) {
+        data.table::fwrite(data.frame(), file = file, col.names = FALSE, row.names = FALSE)
+        return(invisible(NULL))
+    }
     ints$name <- 1:length(ints)
     int_df <- dplyr::as_tibble(ints)[, c(
         "seqnames1", "start1", "end1",
@@ -168,6 +172,10 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 }
 
 .export_seqmonk <- function(ints, file) {
+    if (length(ints) == 0) {
+        data.table::fwrite(data.frame(), file = file, col.names = FALSE, row.names = FALSE)
+        return(invisible(NULL))
+    }
     ints$ID <- 1:length(ints)
     df1 <- dplyr::as_tibble(ints)[, c(
         "seqnames2", "start2", "end2", "bait_2",
