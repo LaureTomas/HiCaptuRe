@@ -4,7 +4,7 @@
 \alias{interactionsByBaits}
 \title{Filters HiCaptuRe object by baits}
 \usage{
-interactionsByBaits(interactions, baits, sep = ",")
+interactionsByBaits(interactions, baits, sep = ",", invert = TRUE)
 }
 \arguments{
 \item{interactions}{a HiCaptuRe object}
@@ -12,6 +12,8 @@ interactionsByBaits(interactions, baits, sep = ",")
 \item{baits}{character vector containing bait names}
 
 \item{sep}{character separating baits names when several baits in same fragment}
+
+\item{invert}{TRUE/FALSE if need those interactions that do NOT contain the given baits}
 }
 \value{
 The returned object includes a filtered set of interactions and updates the ByBaits slot with a tibble summarizing bait-wise interaction statistics (number of interactions, other ends, etc.). Baits that are not present in the interaction data will have empty statistics.

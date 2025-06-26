@@ -152,12 +152,12 @@ Supported enzymes include:
 
 ```{r, enzymes table,echo=FALSE}
 enzymes <- data.frame(
-  Enzyme = c("HindIII", "EcoRI", "BamHI", "MboI", "DpnII"),
-  Motif = c("A^AGCTT", "G^AATTC", "G^GATCC", "^GATC", "^GATC"),
-  Cut_Position = c(1, 1, 1, 0, 0)
+    Enzyme = c("HindIII", "EcoRI", "BamHI", "MboI", "DpnII"),
+    Motif = c("A^AGCTT", "G^AATTC", "G^GATCC", "^GATC", "^GATC"),
+    Cut_Position = c(1, 1, 1, 0, 0)
 )
 
-kable(enzymes, caption = "Table: Recognized Restriction Enzymes and Their Motifs")  |> 
+kable(enzymes, caption = "Table: Recognized Restriction Enzymes and Their Motifs") |>
     kable_styling(
         bootstrap_options = c("striped", "hover", "condensed", "responsive"),
         full_width = FALSE, position = "center"
@@ -216,8 +216,10 @@ Annotation refers to linking each restriction fragment to a meaningful identifie
 - Custom feature names (e.g., from a BED or GTF file)
 
 ```{r, annotate}
-ibed1_annotated <- annotate_interactions(interactions = ibed1,
-                                        annotation = annotation_file)
+ibed1_annotated <- annotate_interactions(
+    interactions = ibed1,
+    annotation = annotation_file
+)
 ibed1_annotated
 ```
 
@@ -250,10 +252,12 @@ The `interactionsByBaits()` function filters your interaction dataset to retain 
 This is especially useful when you want to focus your analysis on specific genes or regulatory elements (e.g., from an RNA-seq differential expression result or a curated gene list).
 
 ```{r, interactionsByBaits}
-baits_of_interest <- c("DAZAP1","PLIN3","FPR3","TP53")
+baits_of_interest <- c("DAZAP1", "PLIN3", "FPR3", "TP53")
 
-ibed_byBaits <- interactionsByBaits(interactions = ibed1_annotated,
-                                    baits = baits_of_interest)
+ibed_byBaits <- interactionsByBaits(
+    interactions = ibed1_annotated,
+    baits = baits_of_interest
+)
 
 ibed_byBaits
 ```
@@ -294,11 +298,14 @@ This is ideal for integrating orthogonal omics data such as ChIP-seq peaks, CUT&
 
 ```{r, interactionsByRegions}
 regions <- GenomicRanges::GRanges(
-  seqnames = 19, 
-  ranges = IRanges(start = c(500000, 1000000), end = c(510000, 1100000)))
+    seqnames = 19,
+    ranges = IRanges(start = c(500000, 1000000), end = c(510000, 1100000))
+)
 
-ibed_byRegions <- interactionsByRegions(interactions = ibed1_annotated,
-                                        regions = regions)
+ibed_byRegions <- interactionsByRegions(
+    interactions = ibed1_annotated,
+    regions = regions
+)
 
 ibed_byRegions
 ```
@@ -390,9 +397,11 @@ The `distance_summary()` function provides a quantitative overview of interactio
 
 
 ```{r, distance_summary}
-dist_sum <- distance_summary(interactions = ibed1_annotated,
-                             breaks = seq(0, 10^6, 10^5),
-                             sample = "ibed1")
+dist_sum <- distance_summary(
+    interactions = ibed1_annotated,
+    breaks = seq(0, 10^6, 10^5),
+    sample = "ibed1"
+)
 dist_sum
 ```
 
@@ -492,9 +501,11 @@ The exported file can be written in the following formats:
 - `bedpe`: Standard BEDPE format compatible with many genomic tools
 
 ```{r, export, eval=F}
-export_interactions(interactions = ibed1_annotated,
-                    file = "/path/to/folder/ibed_annotated.ibed",
-                    type = "ibed")
+export_interactions(
+    interactions = ibed1_annotated,
+    file = "/path/to/folder/ibed_annotated.ibed",
+    type = "ibed"
+)
 ```
 
 **Notes and Behavior**
@@ -516,4 +527,3 @@ export_interactions(interactions = ibed1_annotated,
 ```{r}
 sessionInfo()
 ```
-

@@ -251,7 +251,7 @@ format_table <- data.frame(
 kable(format_table,
     format = "html", escape = FALSE,
     caption = "Summary of Supported Data Formats in HiCaptuRe"
-)  |> 
+) |>
     kable_styling(
         bootstrap_options = c("striped", "hover", "condensed", "responsive"),
         full_width = FALSE, position = "center"
