@@ -323,7 +323,9 @@ The `ByRegions` slot provides a region-centric summary, including:
 
 - Number of interactions involving fragments that overlap the region
 
-- Number of other ends involved in those interactions
+- Number of fragments in data overlapping the region
+
+- Number of other end fragments in data overlapping the region
 
 - IDs and annotation of the overlapping fragments
 
