@@ -73,7 +73,7 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
                 dplyr::mutate(annot = ifelse(is.na(B.id), ".", B.id)) |>
                 dplyr::reframe(
                     Nfragment = dplyr::n(),
-                    NOE = sum(annot == "."),
+                    NfragmentOE = sum(annot == "."),
                     fragmentID = paste(fragmentID, collapse = ","),
                     fragmentAnnot = paste(unique(B.id), collapse = ",")
                 )
@@ -145,7 +145,7 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
                 dplyr::mutate(annot = ifelse(is.na(B.id), ".", B.id)) |>
                 dplyr::reframe(
                     Nfragment = dplyr::n(),
-                    NOE = sum(annot == "."),
+                    NfragmentOE = sum(annot == "."),
                     fragmentID = paste(fragmentID, collapse = ","),
                     fragmentAnnot = paste(unique(B.id), collapse = ",")
                 )
