@@ -5,6 +5,7 @@
 #' @param interactions a HiCaptuRe object
 #' @param baits character vector containing bait names
 #' @param sep character separating baits names when several baits in same fragment
+#' @param invert TRUE/FALSE if need those interactions that do NOT contain the given baits
 #'
 #' @return The returned object includes a filtered set of interactions and updates the ByBaits slot with a tibble summarizing bait-wise interaction statistics (number of interactions, other ends, etc.). Baits that are not present in the interaction data will have empty statistics.
 #'
@@ -19,14 +20,15 @@
 #' interactions_baits <- interactionsByBaits(interactions = interactions, baits = baits)
 #'
 #' @export
-interactionsByBaits <- function(interactions, baits, sep = ",") {
+interactionsByBaits <- function(interactions, baits, sep = ",", invert = TRUE) {
     one <- sapply(stringr::str_split(as.character(interactions$bait_1), sep), function(x) any(x %in% baits))
     two <- sapply(stringr::str_split(as.character(interactions$bait_2), sep), function(x) any(x %in% baits))
-    interactions_baits <- interactions[one | two]
+
+    interactions_baits <- interactions[(one | two)]
 
     if (length(interactions_baits) == 0) {
-        warning("There is no interaction including the given bait(s). Could Interactions be annotated with a different bait nomenclature?")
-        baits_final <- tibble(ID = NA, bait = baits, N_int = NA, NOE = NA, interactingID = NA, interactingAnnotation = NA, interactingDistance = NA)
+        warning("There is no interaction by given bait(s). Could Interactions be annotated with a different bait nomenclature?")
+        baits_final <- tibble(fragmentID = NA, bait = baits, N_int = NA, NOE = NA, interactingID = NA, interactingAnnotation = NA, interactingDistance = NA)
     } else {
         baits_df <- dplyr::as_tibble(interactions_baits) |>
             tidyr::separate_rows(bait_1, sep = sep) |>
@@ -53,14 +55,19 @@ interactionsByBaits <- function(interactions, baits, sep = ",") {
             ) |>
             dplyr::rename(
                 "bait" = "bait_1",
-                "ID" = "ID_1"
+                "fragmentID" = "ID_1"
             )
 
         if (any(!baits %in% baits_final$bait)) {
             missing_baits <- baits[!baits %in% baits_final$bait]
-            missing <- data.frame(ID = NA, bait = missing_baits, N_int = 0, NOE = 0, interactingID = NA, interactingAnnotation = NA, interactingDistance = NA)
-            baits_final <- dplyr::as_tibble(rbind(baits_final, missing)) |> dplyr::arrange(ID)
+            missing <- data.frame(fragmentID = NA, bait = missing_baits, N_int = 0, NOE = 0, interactingID = NA, interactingAnnotation = NA, interactingDistance = NA)
+            baits_final <- dplyr::as_tibble(rbind(baits_final, missing)) |> dplyr::arrange(fragmentID)
         }
+    }
+
+    if (invert) {
+        interactions_baits <- interactions[!(one | two)]
+        baits_final <- baits_final |> dplyr::select(fragmentID, bait)
     }
 
     bait_list <- getByBaits(interactions_baits)
@@ -74,7 +81,7 @@ interactionsByBaits <- function(interactions, baits, sep = ",") {
     interactions_baits <- .setByBaits(interactions_baits, bait_list)
 
     param <- getParameters(interactions_baits)
-    param[[paste0("ByBaits_", length(bait_list))]] <- c(interactions = deparse(substitute(interactions)), baits = paste(baits, collapse = ","), sep = sep)
+    param[[paste0("ByBaits_", length(bait_list))]] <- c(interactions = deparse(substitute(interactions)), baits = paste(baits, collapse = ","), sep = sep, invert = invert)
     interactions_baits <- .setParameters(interactions_baits, param)
 
 
