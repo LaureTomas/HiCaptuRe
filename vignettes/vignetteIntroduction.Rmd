@@ -2,13 +2,13 @@
 title: "HiCaptuRe Introduction"
 author: "Laureano Tomás-Daza"
 package: HiCaptuRe
-date: "2024-06-17"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output: 
   BiocStyle::html_document:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{0. Introduction}
+  %\VignetteIndexEntry{Introduction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -251,11 +251,11 @@ format_table <- data.frame(
 kable(format_table,
     format = "html", escape = FALSE,
     caption = "Summary of Supported Data Formats in HiCaptuRe"
-) %>%
+)  |> 
     kable_styling(
         bootstrap_options = c("striped", "hover", "condensed", "responsive"),
         full_width = FALSE, position = "center"
-    ) %>%
+    ) |>
     row_spec(0, extra_css = "text-align: center;")
 ```
 
