@@ -100,6 +100,8 @@ load_interactions <- function(file, sep = "\t", ...) {
         } else {
             stop("File has the number of columns of a washU file but not the proper format")
         }
+    } else {
+      stop("Could not detect a valid format for the interaction file.")
     }
     return(format)
 }
