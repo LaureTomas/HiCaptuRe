@@ -524,6 +524,6 @@ export_interactions(
 
 # SessionInfo
 
-```{r}
+```{r, sessioninfo}
 sessionInfo()
 ```
