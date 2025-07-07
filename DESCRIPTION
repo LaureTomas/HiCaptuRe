@@ -42,7 +42,8 @@ Suggests:
     BSgenome.Hsapiens.NCBI.GRCh38,
     knitr,
     rmarkdown,
-    DT
+    DT,
+    testthat
 biocViews:
     Epigenetics,
     HiC,
