@@ -311,10 +311,10 @@ ibed_byRegions
 ```
 After filtering, the resulting `HiCaptuRe` object includes 8 new metadata columns, 4 for each anchor:
 
-- `region_1/2`	Logical: Does this anchor overlap any region?
-- `Nregion_1/2`	Integer: Number of overlapping regions
-- `regionID_1/2`	Character: IDs of the overlapping regions
-- `regionCov_1/2`	Numeric: Total base pair overlap between anchor and region(s)
+- `region_1/2`    Logical: Does this anchor overlap any region?
+- `Nregion_1/2`    Integer: Number of overlapping regions
+- `regionID_1/2`    Character: IDs of the overlapping regions
+- `regionCov_1/2`    Numeric: Total base pair overlap between anchor and region(s)
 
 ### Regions Summary: `getByRegions()`
 
