@@ -20,9 +20,10 @@
 #'
 #'
 #' @examples
+#'
 #' ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
 #' interactions <- load_interactions(ibed1, select_chr = "19")
-#' export_interactions(interactions, file = "output.ibed", format = "ibed", over.write = TRUE)
+#' export_interactions(interactions = interactions, file = tempfile(), format = "ibed", over.write = TRUE)
 #'
 #' @export
 export_interactions <- function(interactions, file, format = "ibed", over.write = FALSE, cutoff = 5, parameters = FALSE) {

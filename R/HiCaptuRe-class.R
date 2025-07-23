@@ -43,9 +43,7 @@ setMethod("HiCaptuRe", c("GenomicInteractions", "list", "list", "list"), functio
 
 setMethod("show", "HiCaptuRe", function(object) {
     callNextMethod() # call inherited show from GInteractions
-    # show_emoji <- l10n_info()$`UTF-8` && !isTRUE(getOption("HiCaptuRe.no_emoji"))
 
-    # cat("\n", if (show_emoji) "📦 " else "[", "Slots in HiCaptuRe object", if (!show_emoji) "]", ":\n", sep = "")
     cat("\n","[", "Slots in HiCaptuRe object", "]", ":\n", sep = "")
 
     slots <- slotNames(object)[1:3]
