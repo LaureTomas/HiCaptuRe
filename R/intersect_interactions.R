@@ -26,7 +26,7 @@
 #' interactions1 <- load_interactions(ibed1, select_chr = "19")
 #' ibed2 <- system.file("extdata", "ibed2_example.zip", package = "HiCaptuRe")
 #' interactions2 <- load_interactions(ibed2, select_chr = "19")
-#' interactions_list <- list(ibed1 = ibed1, ibed2 = ibed2)
+#' interactions_list <- list(ibed1 = interactions1, ibed2 = interactions2)
 #' intersection <- intersect_interactions(interactions_list = interactions_list)
 #'
 #' @export
