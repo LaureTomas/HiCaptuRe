@@ -14,7 +14,6 @@
 #' @importFrom GenomicInteractions GenomicInteractions calculateDistances
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split mcols findOverlaps seqnames
 #' @importFrom data.table fread
-#' @importFrom progressr progressor
 #' @importFrom S4Vectors elementMetadata subjectHits
 #'
 #' @examples
