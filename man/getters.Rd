@@ -43,7 +43,7 @@ baits <- c("ENST00000332235", "ENST00000516525")
 interactions_baits <- interactionsByBaits(interactions = interactions, baits = baits)
 getByBaits(interactions_baits)
 
-regions <- GenomicRanges::GRanges(seqnames = 19, ranges = IRanges(start = c(500000, 1000000), end = c(510000, 1100000)))
+regions <- GenomicRanges::GRanges(seqnames = 19, ranges = IRanges::IRanges(start = c(500000, 1000000), end = c(510000, 1100000)))
 interactions_regions <- interactionsByRegions(interactions = interactions, regions = regions)
 getByRegions(interactions_regions)
 
