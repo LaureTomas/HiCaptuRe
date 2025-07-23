@@ -35,7 +35,7 @@ This function filters a HiCaptuRe object from load_interactions by overlaping re
 \examples{
 ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
 interactions <- load_interactions(ibed1, select_chr = "19")
-regions <- GenomicRanges::GRanges(seqnames = 19, ranges = IRanges(start = c(500000, 1000000), end = c(510000, 1100000)))
+regions <- GenomicRanges::GRanges(seqnames = 19, ranges = IRanges::IRanges(start = c(500000, 1000000), end = c(510000, 1100000)))
 interactions_regions <- interactionsByRegions(interactions = interactions, regions = regions)
 
 }
