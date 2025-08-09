@@ -115,8 +115,6 @@ load_interactions <- function(file, sep = "\t", ...) {
     ## Removing real duplicates, if exist, in the file
     new_data <- unique(new_data)
 
-    # dup_real <- (nrow(data) - nrow(new_data)) / 2
-
     ## Filtering those duplicated interactions with different CS, by the higher one
     new_data <- new_data[, lapply(.SD, max), by = list(chr_1, start_1, end_1, chr_2, start_2, end_2)]
     new_data <- new_data[order(new_data$rownames1), ]
