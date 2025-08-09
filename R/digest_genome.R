@@ -28,7 +28,7 @@
 #' digest <- digest_genome(genome = "GRCh38", RE_name = "HindIII", select_chr = "19")
 #'
 #' @export
-digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, cut_position = NULL, select_chr = c(1:22, "X", "Y"), PAR_mask = TRUE, PAR_file = NULL, ...) {
+digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, cut_position = NULL, select_chr = c(seq_len(22), "X", "Y"), PAR_mask = TRUE, PAR_file = NULL, ...) {
     # Define enzyme database
     enzyme_db <- list(
         HindIII = list(motif = "AAGCTT", cut_position = 1),
@@ -147,7 +147,7 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
         PAR_file <- normalizePath(PAR_file)
     }
 
-    digest$fragment_ID <- 1:nrow(digest)
+    digest$fragment_ID <- seq_len(nrow(digest))
     output <- list(
         digest = digest,
         parameters = c(

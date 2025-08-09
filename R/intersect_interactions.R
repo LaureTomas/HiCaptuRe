@@ -71,7 +71,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, 
     la <- list()
 
     if (distance.boxplot) {
-        for (i in 1:length(interactions_list))
+        for (i in seq_len(length(interactions_list)))
         {
             aa <- paste(S4Vectors::elementMetadata(interactions_list[[i]])[["ID_1"]], S4Vectors::elementMetadata(interactions_list[[i]])[["ID_2"]], sep = "_")
             names(aa) <- S4Vectors::elementMetadata(interactions_list[[i]])[["distance"]]
@@ -100,7 +100,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, 
 
         uplot <- suppressWarnings(UpSetR::upset(data_final, nsets = length(interactions_list), boxplot.summary = "log10dist", mainbar.y.label = "# Interactions", sets.x.label = "# Interactions", ...))
     } else {
-        for (i in 1:length(interactions_list))
+        for (i in seq_len(length(interactions_list)))
         {
             aa <- paste(S4Vectors::elementMetadata(interactions_list[[i]])[["ID_1"]], S4Vectors::elementMetadata(interactions_list[[i]])[["ID_2"]], sep = "_")
             la[[names(interactions_list)[i]]] <- aa
@@ -119,11 +119,11 @@ intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, 
 
     int <- attr(venn_plot, "intersections")
 
-    for (i in 1:length(int))
+    for (i in seq_len(length(int)))
     {
         int_name <- stringr::str_split(names(int[i]), ":")[[1]]
 
-        for (j in 1:length(int_name))
+        for (j in seq_len(length(int_name)))
         {
             sample <- int_name[j]
 
@@ -138,7 +138,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, 
                 CS <- grep("CS.*", cols)
                 names(GenomicRanges::mcols(ints))[CS] <- paste(cols[CS], sample, sep = "_")
 
-                GenomicRanges::mcols(ints) <- GenomicRanges::mcols(ints)[, c(1:initial, CS, final)]
+                GenomicRanges::mcols(ints) <- GenomicRanges::mcols(ints)[, c(seq_len(initial), CS, final)]
             } else {
                 m <- match(int[[i]], paste(S4Vectors::elementMetadata(interactions_list[[sample]])[["ID_1"]], S4Vectors::elementMetadata(interactions_list[[sample]])[["ID_2"]], sep = "_"))
                 ints2 <- interactions_list[[sample]][m]
@@ -148,7 +148,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, 
 
                 count <- grep("counts", names(GenomicRanges::mcols(ints)))
 
-                S4Vectors::elementMetadata(ints) <- cbind(S4Vectors::elementMetadata(ints)[1:(count - 1)], S4Vectors::elementMetadata(ints2)[CS], S4Vectors::elementMetadata(ints)[count:ncol(GenomicRanges::mcols(ints))])
+                S4Vectors::elementMetadata(ints) <- cbind(S4Vectors::elementMetadata(ints)[seq_len((count - 1))], S4Vectors::elementMetadata(ints2)[CS], S4Vectors::elementMetadata(ints)[count:ncol(GenomicRanges::mcols(ints))])
             }
         }
 
@@ -165,7 +165,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, 
                 cs <- c(cs, grep(paste0("CS_.*", sample, "$"), cols))
             }
 
-            S4Vectors::elementMetadata(ints) <- S4Vectors::elementMetadata(ints)[, c(1:initial, cs, count:length(cols))]
+            S4Vectors::elementMetadata(ints) <- S4Vectors::elementMetadata(ints)[, c(seq_len(initial), cs, count:length(cols))]
 
             int_name <- paste(sub_original, collapse = ":")
         }

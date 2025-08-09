@@ -167,7 +167,7 @@ load_interactions <- function(file, sep = "\t", ...) {
 .process_seqmonk <- function(data) {
     new_datadd <- .process_data(data, score_names)
 
-    data$rownames <- 1:nrow(data)
+    data$rownames <- seq_len(nrow(data))
 }
 
 .process_washU <- function(data) {
@@ -232,7 +232,7 @@ load_interactions <- function(file, sep = "\t", ...) {
     df2 <- data[, c(5:ncol(data)), with = FALSE]
     colnames(df2) <- colnames(df1)
 
-    df <- rbind(data.table::data.table(df1, index = 1:nrow(df1)), data.table::data.table(df2, index = 1:nrow(df2)))
+    df <- rbind(data.table::data.table(df1, index = seq_len(nrow(df1))), data.table::data.table(df2, index = seq_len(nrow(df2))))
 
     df <- df[order(df$index), ]
     data <- df[, !grepl("index", colnames(df)), with = FALSE]
@@ -240,7 +240,7 @@ load_interactions <- function(file, sep = "\t", ...) {
 }
 
 .process_data <- function(data, score_names) {
-    data$rownames <- 1:nrow(data)
+    data$rownames <- seq_len(nrow(data))
 
     ## Putting together in one line each interactions and duplicating them
     new_data <- rbind(
@@ -251,13 +251,13 @@ load_interactions <- function(file, sep = "\t", ...) {
     ## Ordering by the original line that came
     new_data <- new_data[order(new_data$rownames), ]
     colnames(new_data) <- c(
-        "chr_1", "start_1", "end_1", "bait_1", "read_1", paste0("CS_1_ct", 1:length(score_names)), "rownames1",
-        "chr_2", "start_2", "end_2", "bait_2", "read_2", paste0("CS_2_ct", 1:length(score_names)), "rownames2"
+        "chr_1", "start_1", "end_1", "bait_1", "read_1", paste0("CS_1_ct", seq_len(length(score_names))), "rownames1",
+        "chr_2", "start_2", "end_2", "bait_2", "read_2", paste0("CS_2_ct", seq_len(length(score_names))), "rownames2"
     )
 
     new_datadd <- .deduplicate_interactions(new_data)
 
-    new_datadd <- new_datadd[, !colnames(new_datadd) %in% c("rownames1", "rownames2", "read_1", paste0("CS_1_ct", 1:length(score_names))), with = FALSE]
+    new_datadd <- new_datadd[, !colnames(new_datadd) %in% c("rownames1", "rownames2", "read_1", paste0("CS_1_ct", seq_len(length(score_names)))), with = FALSE]
     colnames(new_datadd)[9:ncol(new_datadd)] <- c("reads", score_names)
     new_datadd <- new_datadd[, c(
         "chr_1", "start_1", "end_1", "bait_1",

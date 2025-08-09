@@ -52,7 +52,7 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
     } else {
         stop("`regions` must be either a GRanges object or a character path to a BED-like file.")
     }
-    regionsGR$regionID <- 1:length(regionsGR)
+    regionsGR$regionID <- seq_len(length(regionsGR))
 
     if (invert) {
         interactions_regions <- unique(IRanges::subsetByOverlaps(interactions, regionsGR, invert = invert))
@@ -134,7 +134,7 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
             m$regionCov_2[is.na(m$regionCov_2)] <- 0
 
 
-            if (all(as.data.frame(m[, 1:ncol(S4Vectors::elementMetadata(interactions_regions))]) == as.data.frame(S4Vectors::elementMetadata(interactions_regions)), na.rm = TRUE)) {
+            if (all(as.data.frame(m[, seq_len(ncol(S4Vectors::elementMetadata(interactions_regions)))]) == as.data.frame(S4Vectors::elementMetadata(interactions_regions)), na.rm = TRUE)) {
                 S4Vectors::elementMetadata(interactions_regions) <- m
             } else {
                 stop("Data order is not correct. Maybe some bait was initially clasified as Other-End")

@@ -100,7 +100,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
     file <- paste0(file, ".parameters")
     param <- getParameters(interactions)
 
-    for (i in 1:length(param))
+    for (i in seq_len(length(param)))
     {
         df <- as.data.frame(param[[i]])
         colnames(df) <- paste("#", toupper(names(param)[i]), "#")
@@ -158,7 +158,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
         data.table::fwrite(data.frame(), file = file, col.names = FALSE, row.names = FALSE)
         return(invisible(NULL))
     }
-    ints$name <- 1:length(ints)
+    ints$name <- seq_len(length(ints))
     int_df <- dplyr::as_tibble(ints)[, c(
         "seqnames1", "start1", "end1",
         "seqnames2", "start2", "end2",
@@ -179,7 +179,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
         data.table::fwrite(data.frame(), file = file, col.names = FALSE, row.names = FALSE)
         return(invisible(NULL))
     }
-    ints$ID <- 1:length(ints)
+    ints$ID <- seq_len(length(ints))
     df1 <- dplyr::as_tibble(ints)[, c(
         "seqnames2", "start2", "end2", "bait_2",
         "reads", "CS", "ID"
