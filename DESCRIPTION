@@ -13,7 +13,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: false
 Depends:
-  R (>= 4.1.0)
+  R (>= 4.5.0)
 Imports:
     Biostrings,
     BSgenome,
@@ -44,7 +44,9 @@ Suggests:
     knitr,
     rmarkdown,
     DT,
-    testthat
+    testthat,
+    BiocStyle,
+    kableExtra
 biocViews:
     Epigenetics,
     HiC,
