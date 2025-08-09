@@ -33,7 +33,7 @@
 intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, ...) {
     param <- lapply(interactions_list, function(x) getParameters(x)$digest)
 
-    are_identical <- all(sapply(param[-1], function(x) identical(param[[1]], x)))
+    are_identical <- all(vapply(param[-1], function(x) identical(param[[1]], x), FUN.VALUE = TRUE))
 
     if (!are_identical) {
         stop("HiCaptuRe objects in the interactions_list have different digest genome. Check load_interactions() and digest_genome() arguments.")

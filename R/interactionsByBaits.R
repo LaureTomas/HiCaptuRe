@@ -21,8 +21,8 @@
 #'
 #' @export
 interactionsByBaits <- function(interactions, baits, sep = ",", invert = TRUE) {
-    one <- sapply(stringr::str_split(as.character(interactions$bait_1), sep), function(x) any(x %in% baits))
-    two <- sapply(stringr::str_split(as.character(interactions$bait_2), sep), function(x) any(x %in% baits))
+    one <- vapply(stringr::str_split(as.character(interactions$bait_1), sep), function(x) any(x %in% baits), FUN.VALUE = TRUE)
+    two <- vapply(stringr::str_split(as.character(interactions$bait_2), sep), function(x) any(x %in% baits), FUN.VALUE = TRUE)
 
     interactions_baits <- interactions[(one | two)]
 
