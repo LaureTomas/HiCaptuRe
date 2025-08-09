@@ -19,7 +19,8 @@ peakmatrix2list <- function(peakmatrix, cutoff = 5) {
     parameters <- getParameters(peakmatrix)
     format <- parameters$load["format"]
     if (tolower(format) != "peakmatrix") {
-        stop(paste0("Input is not a peakmatrix, it is a ", format))
+        stop_message <- paste0("Input is not a peakmatrix, it is a ", format)
+        stop(stop_message)
     } else if (!is.null(parameters$peakmatrix2list)) {
         stop("The input object already appears to have been processed by 'peakmatrix2list()', which means it contains interactions for a single sample only. Please provide an unprocessed 'peakmatrix' object.")
     }

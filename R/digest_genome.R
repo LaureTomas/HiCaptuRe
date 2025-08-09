@@ -79,7 +79,8 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
             if (file.exists(PAR_file)) {
                 PAR <- read.delim(PAR_file, header = TRUE, ...)
             } else {
-                stop(paste("There is no PAR file provided for", metadata(genome)$organism, "\n It must be a headed file with seqnames,start,end columns"))
+                stop_message <- paste("There is no PAR file provided for", metadata(genome)$organism, "\n It must be a headed file with seqnames,start,end columns")
+                stop(stop_message)
             }
         } else {
             if (file.exists(PAR_file)) {

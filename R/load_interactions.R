@@ -23,7 +23,8 @@
 #' @export
 load_interactions <- function(file, sep = "\t", ...) {
     if (!file.exists(file)) {
-        stop(paste(basename(file), "does not exist"))
+        stop_message1 <- paste(basename(file), "does not exist")
+        stop(stop_message1)
     }
 
     data <- data.table::fread(file = file, sep = sep, stringsAsFactors = FALSE, na.strings = "")
@@ -70,7 +71,8 @@ load_interactions <- function(file, sep = "\t", ...) {
         if (all(peakmatrix_columns == (colnames(data)[1:11]))) {
             format <- "peakmatrix"
         } else {
-            stop(paste("File has the number of columns of a peakmatrix file but not the correct columns names. Peakmatrix files col.names should be:", paste(peakmatrix_columns, collapse = " ")))
+            stop_message2 <- paste("File has the number of columns of a peakmatrix file but not the correct columns names. Peakmatrix files col.names should be:", paste(peakmatrix_columns, collapse = " "))
+            stop(stop_message2)
         }
     } else if (ncol(data) == 10) {
         ibed_columns <- c(
@@ -83,7 +85,8 @@ load_interactions <- function(file, sep = "\t", ...) {
         } else if (all(colnames(data) == paste0("V", 1:10))) {
             format <- "bedpe"
         } else {
-            stop(paste("File has the number of columns of an ibed file or a bedpe file but not the correct columns names. Bedpe files should not have header, and ibed files col.names should be:", paste(ibed_columns, collapse = " ")))
+            stop_message3 <- paste("File has the number of columns of an ibed file or a bedpe file but not the correct columns names. Bedpe files should not have header, and ibed files col.names should be:", paste(ibed_columns, collapse = " "))
+            stop(stop_message3)
         }
     } else if (ncol(data) == 6) {
         if (all(colnames(data) == paste0("V", 1:6))) {
@@ -272,7 +275,8 @@ load_interactions <- function(file, sep = "\t", ...) {
     seqnames_digest <- GenomicRanges::seqnames(digest$seqinfo)
 
     if (!all(seqnames_data %in% seqnames_digest)) {
-        stop(paste("Some chromosomes from data are not present in the digest genome. Missing chromosomes:", paste(seqnames_data[!seqnames_data %in% seqnames_digest], collapse = ", "), ". Check digest_genome() arguments."))
+        stop_message4 <- paste("Some chromosomes from data are not present in the digest genome. Missing chromosomes:", paste(seqnames_data[!seqnames_data %in% seqnames_digest], collapse = ", "), ". Check digest_genome() arguments.")
+        stop(stop_message4)
     }
 
     digestGR <- GenomicRanges::makeGRangesFromDataFrame(digest$digest, keep.extra.columns = TRUE)
