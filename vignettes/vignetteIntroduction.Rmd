@@ -22,9 +22,34 @@ library(knitr)
 library(kableExtra)
 ```
 
+# Installation
+
+You can install the latest release of `HiCaptuRe` from Bioconductor:
+
+```{r, install, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("HiCaptuRe")
+```
+
+
+If you want to test the development version, you can install it from the github repository:
+
+```{r, install2, eval=FALSE}
+    BiocManager::install("LaureTomas/HiCaptuRe")
+```
+
+
 # Overview
 
 HiCaptuRe is an R package designed to manage and analyze Capture Hi-C data, including high-resolution methods like liCHi-C. These approaches detect long-range genomic interactions involving selected regions of interest ("baits") by combining chromatin capture with targeted probe enrichment. The result is a cost-effective, fragment-level resolution map of genomic contacts.
+
+## Motivation for Bioconductor
+
+HiCaptuRe builds directly on Bioconductor’s `GenomicInteractions` class, extending it with capture‑specific metadata and workflows for importing, and bait‑aware fragment handling in Capture Hi‑Cexperiments. This design ensures seamless use of existing utilities and visualizations, and straightforward integration with CHi‑C callers such as **CHiCAGO**. Unlike CHiCAGO, which focuses on statistical interaction calling, and GenomicInteractions, which provides general‑purpose infrastructure for chromatin contact data, HiCaptuRe addresses the capture‑specific preprocessing, organization, and annotation needs that precede or complement these tools. Distribution through Bioconductor guarantees consistent installation via `BiocManager`, access to genome and annotation resources, and continuous cross‑platform checks for reproducibility, helping integrate capture‑specific workflows into the broader Bioconductor 3D genomics framework.
+
+
 
 # Basic Vocabulary
 
