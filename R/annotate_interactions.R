@@ -24,9 +24,9 @@
 #'
 #' @export
 annotate_interactions <- function(interactions, annotation, ...) {
-    if (any(methods::is(annotation, "data.frame"))) {
+    if (is.data.frame(annotation)) {
         annotation_file <- deparse(substitute(annotation))
-    } else if (methods::is(annotation, "character")) {
+    } else if (is.character(annotation)) {
         annotation_file <- normalizePath(annotation)
         ## Reading annotation file
         annotation <- data.table::fread(annotation, stringsAsFactors = FALSE, ...)

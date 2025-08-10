@@ -30,7 +30,7 @@ interactionsByRegions <- function(interactions, regions, chr = NULL, start = NUL
     if (is(regions, "GRanges")) {
         regions_name <- deparse(substitute(regions))
         regionsGR <- regions
-    } else if (is(regions, "character")) {
+    } else if (is.character(regions)) {
         regions_name <- regions
 
         ## Reading regions and transforming to Genomic Ranges
