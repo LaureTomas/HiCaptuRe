@@ -107,9 +107,9 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
         df <- rbind(df, "")
         rownames(df)[nrow(df)] <- ""
         if (i == 1) {
-            data.table::fwrite(df, file = file, quote = FALSE, sep = "\t", col.names = TRUE)
+            data.table::fwrite(df, file = file, quote = FALSE, sep = "\t", col.names = TRUE, row.names = TRUE)
         } else {
-            suppressWarnings(data.table::fwrite(df, file = file, quote = FALSE, sep = "\t", col.names = TRUE, append = TRUE))
+            data.table::fwrite(df, file = file, quote = FALSE, sep = "\t", col.names = TRUE, append = TRUE, row.names = TRUE)
         }
     }
 }
