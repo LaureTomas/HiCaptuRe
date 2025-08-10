@@ -19,7 +19,7 @@
 #' @importFrom Biostrings replaceAt DNAStringSet matchPattern
 #' @importFrom BSgenome getBSgenome
 #' @importFrom IRanges IRanges
-#' @importFrom GenomeInfoDb seqlevelsStyle seqnames seqlevels
+#' @importFrom GenomeInfoDb seqlevelsStyle seqnames seqlevels bsgenomeName
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #'
 #'
@@ -152,7 +152,7 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
         digest = digest,
         parameters = c(
             "Genome" = genome_name,
-            "Genome_Package" = genome@pkgname,
+            "Genome_Package" = GenomeInfoDb::bsgenomeName(genome),
             "Restriction_Enzyme" = RE_name,
             "Motif" = motif,
             "Cut_Position" = cut_position,

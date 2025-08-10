@@ -20,6 +20,7 @@
 #' @importFrom UpSetR upset fromList
 #' @importFrom S4Vectors elementMetadata
 #' @importFrom ggVennDiagram ggVennDiagram
+#' @importFrom InteractionSet regions
 #'
 #' @examples
 #' ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
@@ -40,7 +41,7 @@ intersect_interactions <- function(interactions_list, distance.boxplot = FALSE, 
     }
 
     check_annot <- lapply(interactions_list, function(x) {
-        as_tibble(elementMetadata(x@regions)) |>
+        as_tibble(elementMetadata(InteractionSet::regions(x))) |>
             mutate(name = dplyr::coalesce(unlist(B.id), unlist(OE.id))) |>
             select(node.class, fragmentID, name) |>
             unique()

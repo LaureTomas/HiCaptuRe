@@ -15,6 +15,7 @@
 #' @importFrom GenomicRanges makeGRangesFromDataFrame split mcols findOverlaps seqnames
 #' @importFrom data.table fread
 #' @importFrom S4Vectors elementMetadata subjectHits
+#' @importFrom InteractionSet anchorIds
 #'
 #' @examples
 #' ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
@@ -311,11 +312,11 @@ load_interactions <- function(file, sep = "\t", ...) {
     ## Sorting interactions B_B
     cond <- ((gi$ID_1 > gi$ID_2) & gi$int == "B_B") | ((gi$ID_1 < gi$ID_2) & gi$int == "OE_B")
 
-    a1 <- gi@anchor1[cond]
-    a2 <- gi@anchor2[cond]
+    a1 <- InteractionSet::anchorIds(gi, type = "first")[cond]
+    a2 <- InteractionSet::anchorIds(gi, type = "second")[cond]
 
-    gi@anchor1[cond] <- a2
-    gi@anchor2[cond] <- a1
+    InteractionSet::anchorIds(gi, type = "first")[cond] <- a2
+    InteractionSet::anchorIds(gi, type = "second")[cond] <- a1
 
     cols <- sort(grep("_", colnames(S4Vectors::elementMetadata(gi[cond]))[1:4], value = TRUE))
     S4Vectors::elementMetadata(gi[cond])[cols] <- S4Vectors::elementMetadata(gi[cond])[cols[c(rbind(seq(2, length(cols), 2), seq(1, length(cols), 2)))]]

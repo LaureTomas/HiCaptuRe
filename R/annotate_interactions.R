@@ -13,6 +13,7 @@
 #' @importFrom data.table fread
 #' @importFrom S4Vectors elementMetadata
 #' @importFrom methods is
+#' @importFrom InteractionSet anchorIds
 #'
 #'
 #' @examples
@@ -57,11 +58,11 @@ annotate_interactions <- function(interactions, annotation, ...) {
 
         cond <- ((interactions$ID_1 > interactions$ID_2) & interactions$int == "B_B") | ((interactions$ID_1 < interactions$ID_2) & interactions$int == "OE_B")
 
-        a1 <- interactions@anchor1[cond]
-        a2 <- interactions@anchor2[cond]
+        a1 <- InteractionSet::anchorIds(interactions, type = "first")[cond]
+        a2 <- InteractionSet::anchorIds(interactions, type = "second")[cond]
 
-        interactions@anchor1[cond] <- a2
-        interactions@anchor2[cond] <- a1
+        InteractionSet::anchorIds(interactions, type = "first")[cond] <- a2
+        InteractionSet::anchorIds(interactions, type = "second")[cond] <- a1
 
         cols <- c("bait_1", "bait_2", "ID_1", "ID_2")
         S4Vectors::elementMetadata(interactions[cond])[cols] <- S4Vectors::elementMetadata(interactions[cond])[cols[c(rbind(seq(2, length(cols), 2), seq(1, length(cols), 2)))]]
