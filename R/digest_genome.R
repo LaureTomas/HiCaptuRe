@@ -11,7 +11,7 @@
 #' @param PAR_file a full path to a file containing the coordinates of Y chromosome PAR with at least 3 colums with header: seqnames, start, end
 #' @param ... extra arguments for read.table
 #'
-#' @return list object with 2 elements
+#' @return list object with 2 elements: a dataframe with the digested genome, and a the parameters used for the digestion.
 #'
 #' @note The package provides for a PAR coordinates file only for Homo sapiens for the genome version 38
 #' @note The package provides the motives and cut positions for several restriction enzymes (HindII, MboI, DpnII, EcoRI, BamHI)
@@ -21,6 +21,7 @@
 #' @importFrom IRanges IRanges
 #' @importFrom GenomeInfoDb seqlevelsStyle seqnames seqlevels bsgenomeName
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @importFrom data.table rbindlist
 #'
 #'
 #' @examples
@@ -111,35 +112,43 @@ digest_genome <- function(genome = "GRCh38", RE_name = "HindIII", motif = NULL, 
     }
 
     ## Digest genome by chromosomes
-    digest <- data.frame()
-    for (chr in chrs) {
-        chr_seq <- genome[[chr]]
-        # Mask PAR regions, if needed
-        if (PAR_mask) {
-            if (chr %in% GenomeInfoDb::seqlevels(PARGR)) {
-                chr_PAR <- IRanges::subsetByOverlaps(PARGR, GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq))))
-                if (length(chr_PAR) > 0) {
-                    widths <- width(chr_PAR)
-                    mask_seqs <- Biostrings::DNAStringSet(strrep("N", widths))
+    digest <- lapply(chrs, function(chr) {
+      chr_seq <- genome[[chr]]
 
-                    chr_seq <- Biostrings::replaceAt(
-                        chr_seq,
-                        ranges(chr_PAR),
-                        mask_seqs
-                    )
-                }
-            }
+      # Mask PAR regions (if requested and available for this chr)
+      if (isTRUE(PAR_mask) && chr %in% GenomeInfoDb::seqlevels(PARGR)) {
+        chr_PAR <- IRanges::subsetByOverlaps(
+          PARGR,
+          GenomicRanges::GRanges(chr, IRanges::IRanges(1, length(chr_seq)))
+        )
+        if (length(chr_PAR) > 0) {
+          widths    <- IRanges::width(chr_PAR)
+          mask_seqs <- Biostrings::DNAStringSet(strrep("N", widths))
+          chr_seq   <- Biostrings::replaceAt(chr_seq, GenomicRanges::ranges(chr_PAR), mask_seqs)
         }
+      }
 
-        m <- Biostrings::matchPattern(motif, chr_seq)
-        correct <- start(m) - 1 + cut_position
+      m <- Biostrings::matchPattern(motif, chr_seq)
 
+      if (length(m) == 0) {
+        starts <- 1
+        ends   <- length(chr_seq)
+      } else {
+        correct <- IRanges::start(m) - 1 + cut_position
         starts <- c(1, correct + 1)
-        ends <- c(correct, length(chr_seq))
+        ends   <- c(correct, length(chr_seq))
 
-        df <- data.frame(seqnames = chr, start = starts, end = ends)
-        digest <- rbind(digest, df)
-    }
+      }
+
+      data.frame(
+        seqnames = chr,
+        start = starts,
+        end   = ends,
+        row.names = NULL,
+        check.names = FALSE,
+        stringsAsFactors = FALSE
+      )
+    }) |> data.table::rbindlist()
 
     if (!PAR_mask) {
         PAR_file <- "NULL"
