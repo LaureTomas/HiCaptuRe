@@ -46,7 +46,7 @@ setMethod("show", "HiCaptuRe", function(object) {
 
     cat("\n", "[", "Slots in HiCaptuRe object", "]", ":\n", sep = "")
 
-    slots <- slotNames(object)[1:3]
+    slots <- slotNames(object)[seq_len(3)]
     for (s in slots) {
         slot_value <- slot(object, s)
 
