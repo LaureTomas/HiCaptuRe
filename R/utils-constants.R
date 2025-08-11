@@ -5,12 +5,12 @@
 #' consistency between import and export.
 #' @keywords internal
 .IBED_COLS <- c(
-  "bait_chr", "bait_start", "bait_end", "bait_name",
-  "otherEnd_chr", "otherEnd_start", "otherEnd_end", "otherEnd_name",
-  "N_reads", "score"
+    "bait_chr", "bait_start", "bait_end", "bait_name",
+    "otherEnd_chr", "otherEnd_start", "otherEnd_end", "otherEnd_name",
+    "N_reads", "score"
 )
 
 .PEAKMATRIX_COLS <- c(
-  "baitChr", "baitStart", "baitEnd", "baitID", "baitName",
-  "oeChr", "oeStart", "oeEnd", "oeID", "oeName", "dist"
+    "baitChr", "baitStart", "baitEnd", "baitID", "baitName",
+    "oeChr", "oeStart", "oeEnd", "oeID", "oeName", "dist"
 )

@@ -27,8 +27,9 @@ library(kableExtra)
 You can install the latest release of `HiCaptuRe` from Bioconductor:
 
 ```{r, install, eval=FALSE}
-if (!requireNamespace("BiocManager", quietly = TRUE))
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
+}
 
 BiocManager::install("HiCaptuRe")
 ```
@@ -37,7 +38,7 @@ BiocManager::install("HiCaptuRe")
 If you want to test the development version, you can install it from the github repository:
 
 ```{r, install2, eval=FALSE}
-    BiocManager::install("LaureTomas/HiCaptuRe")
+BiocManager::install("LaureTomas/HiCaptuRe")
 ```
 
 

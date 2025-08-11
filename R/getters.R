@@ -26,7 +26,6 @@
 #' interactions_regions <- interactionsByRegions(interactions = interactions, regions = regions)
 #' getByRegions(interactions_regions)
 #'
-
 ## parameters
 
 #' @rdname getters

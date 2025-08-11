@@ -44,7 +44,7 @@ setMethod(".setByRegions", c(x = "HiCaptuRe", y = "list"), function(x, y) .set_s
 
 #' @keywords internal
 .set_slot <- function(x, slot, value) {
-  methods::slot(x, slot) <- value
-  methods::validObject(x)
-  x
+    methods::slot(x, slot) <- value
+    methods::validObject(x)
+    x
 }

@@ -44,7 +44,7 @@ setMethod("HiCaptuRe", c("GenomicInteractions", "list", "list", "list"), functio
 setMethod("show", "HiCaptuRe", function(object) {
     callNextMethod() # call inherited show from GInteractions
 
-    cat("\n","[", "Slots in HiCaptuRe object", "]", ":\n", sep = "")
+    cat("\n", "[", "Slots in HiCaptuRe object", "]", ":\n", sep = "")
 
     slots <- slotNames(object)[1:3]
     for (s in slots) {
