@@ -3,6 +3,9 @@
 #' `.IBED_COLS` and `.PEAKMATRIX_COLS` store canonical column names for ibed and peakmatrix formats.
 #' These are used in both `.detect_format()` and export functions to avoid repetition and ensure
 #' consistency between import and export.
+#'
+#' @name constants
+#'
 #' @keywords internal
 .IBED_COLS <- c(
     "bait_chr", "bait_start", "bait_end", "bait_name",

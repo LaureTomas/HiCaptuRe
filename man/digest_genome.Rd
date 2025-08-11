@@ -9,7 +9,7 @@ digest_genome(
   RE_name = "HindIII",
   motif = NULL,
   cut_position = NULL,
-  select_chr = c(1:22, "X", "Y"),
+  select_chr = c(seq_len(22), "X", "Y"),
   PAR_mask = TRUE,
   PAR_file = NULL,
   ...
@@ -28,12 +28,12 @@ digest_genome(
 
 \item{PAR_mask}{a logical value where the Y chromosome should exclude the Pseudoautosomical Regions (PAR) or not}
 
-\item{PAR_file}{a full path to a file containing the coordinates of Y chromosome PAR with at least 3 colums with header: seqnames, start, end}
+\item{PAR_file}{a full path to a file containing the coordinates of Y chromosome PAR with at least 3 columns with header: seqnames, start, end}
 
 \item{...}{extra arguments for read.table}
 }
 \value{
-list object with 2 elements
+list object with 2 elements: a dataframe with the digested genome, and a the parameters used for the digestion.
 }
 \description{
 This function takes a genome installed and generates its digest for a given restriction enzyme
@@ -41,7 +41,7 @@ This function takes a genome installed and generates its digest for a given rest
 \note{
 The package provides for a PAR coordinates file only for Homo sapiens for the genome version 38
 
-The package provides the motives and cut positions for several restriction enzymes (HindII, MboI, DpnII, EcoRI, BamHI)
+The package provides the motives and cut positions for several restriction enzymes (HindIII, MboI, DpnII, EcoRI, BamHI)
 }
 \examples{
 

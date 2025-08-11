@@ -14,7 +14,7 @@ distance_summary(interactions, breaks = seq(0, 10^6, 10^5), sample = "sample")
 \item{sample}{character variable with the name of the sample}
 }
 \value{
-list with 2 tables: short_int_dist_table and long_int_dist_table, with the number of short interactions and long interactions respectivetly
+list with 2 tables: short_int_dist_table and long_int_dist_table, with the number of short interactions and long interactions respectively
 }
 \description{
 This function computes the number of interactions by distance for a given GenomicInteractions object

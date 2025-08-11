@@ -8,7 +8,7 @@
 \alias{getByBaits,HiCaptuRe-method}
 \alias{getByRegions}
 \alias{getByRegions,HiCaptuRe-method}
-\title{Interanl functions to access data held in a HiCaptuRe object.}
+\title{Internal functions to access data held in a HiCaptuRe object.}
 \usage{
 getParameters(x)
 
@@ -26,9 +26,9 @@ getByRegions(x)
 \item{x}{A HiCaptuRe object}
 }
 \value{
-For 'getParameters', a named list of named vectors. For 'getByBaits', a list
-of tibbles with bait-centric information. For 'getByRegions', a list of GRanges with
-regions-centric information.
+- `getParameters(x)`: a named list of named vectors with all parameters used.
+- `getByBaits(x)`: a list of tibbles with bait‑centric summaries.
+- `getByRegions(x)`: a list of `GRanges` with region‑centric summaries.
 }
 \description{
 Use these functions to access data stored in each of the slots of a
