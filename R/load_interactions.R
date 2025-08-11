@@ -64,29 +64,19 @@ load_interactions <- function(file, sep = "\t", ...) {
 
 .detect_format <- function(data) {
     if (ncol(data) > 11) {
-        peakmatrix_columns <- c(
-            "baitChr", "baitStart", "baitEnd", "baitID", "baitName",
-            "oeChr", "oeStart", "oeEnd", "oeID", "oeName",
-            "dist"
-        )
-        if (all(peakmatrix_columns == (colnames(data)[1:11]))) {
+        if (all(.PEAKMATRIX_COLS == (colnames(data)[1:11]))) {
             format <- "peakmatrix"
         } else {
-            stop_message2 <- paste("File has the number of columns of a peakmatrix file but not the correct columns names. Peakmatrix files col.names should be:", paste(peakmatrix_columns, collapse = " "))
+            stop_message2 <- paste("File has the number of columns of a peakmatrix file but not the correct columns names. Peakmatrix files col.names should be:", paste(.PEAKMATRIX_COLS, collapse = " "))
             stop(stop_message2)
         }
     } else if (ncol(data) == 10) {
-        ibed_columns <- c(
-            "bait_chr", "bait_start", "bait_end", "bait_name",
-            "otherEnd_chr", "otherEnd_start", "otherEnd_end", "otherEnd_name",
-            "N_reads", "score"
-        )
-        if (all(colnames(data) == ibed_columns)) {
+        if (all(colnames(data) == .IBED_COLS)) {
             format <- "ibed"
         } else if (all(colnames(data) == paste0("V", 1:10))) {
             format <- "bedpe"
         } else {
-            stop_message3 <- paste("File has the number of columns of an ibed file or a bedpe file but not the correct columns names. Bedpe files should not have header, and ibed files col.names should be:", paste(ibed_columns, collapse = " "))
+            stop_message3 <- paste("File has the number of columns of an ibed file or a bedpe file but not the correct columns names. Bedpe files should not have header, and ibed files col.names should be:", paste(.IBED_COLS, collapse = " "))
             stop(stop_message3)
         }
     } else if (ncol(data) == 6) {

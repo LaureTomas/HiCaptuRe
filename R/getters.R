@@ -6,9 +6,12 @@
 #' @param x A HiCaptuRe object
 #' @name getters
 #'
-#' @return For 'getParameters', a named list of named vectors. For 'getByBaits', a list
-#' of tibbles with bait-centric information. For 'getByRegions', a list of GRanges with
-#' regions-centric information.
+#' @return
+#' - `getParameters(x)`: a named list of named vectors with all parameters used.
+#' - `getByBaits(x)`: a list of tibbles with bait‑centric summaries.
+#' - `getByRegions(x)`: a list of `GRanges` with region‑centric summaries.
+#'
+#' @importFrom methods slot
 #'
 #' @examples
 #' ibed1 <- system.file("extdata", "ibed1_example.zip", package = "HiCaptuRe")
@@ -35,9 +38,7 @@ setGeneric("getParameters", function(x) {
 #' @rdname getters
 #'
 #' @export
-setMethod("getParameters", c(x = "HiCaptuRe"), function(x) {
-    return(x@parameters)
-})
+setMethod("getParameters", c(x = "HiCaptuRe"), function(x) .get_slot(x, "parameters"))
 
 ## byBaits
 
@@ -50,9 +51,7 @@ setGeneric("getByBaits", function(x) {
 #' @rdname getters
 #'
 #' @export
-setMethod("getByBaits", c(x = "HiCaptuRe"), function(x) {
-    return(x@ByBaits)
-})
+setMethod("getByBaits", c(x = "HiCaptuRe"), function(x) .get_slot(x, "ByBaits"))
 
 ## byRegions
 
@@ -65,6 +64,8 @@ setGeneric("getByRegions", function(x) {
 #' @rdname getters
 #'
 #' @export
-setMethod("getByRegions", c(x = "HiCaptuRe"), function(x) {
-    return(x@ByRegions)
-})
+setMethod("getByRegions", c(x = "HiCaptuRe"), function(x) .get_slot(x, "ByRegions"))
+
+
+#' @keywords internal
+.get_slot <- function(x, slot) methods::slot(x, slot)

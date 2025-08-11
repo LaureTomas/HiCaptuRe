@@ -19,10 +19,7 @@ setGeneric(".setParameters", function(x, y) {
     standardGeneric(".setParameters")
 })
 #' @rdname setters
-setMethod(".setParameters", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-    x@parameters <- y
-    return(x)
-})
+setMethod(".setParameters", c(x = "HiCaptuRe", y = "list"), function(x, y) .set_slot(x, "parameters", y))
 
 ## byBaits
 
@@ -32,10 +29,7 @@ setGeneric(".setByBaits", function(x, y) {
     standardGeneric(".setByBaits")
 })
 #' @rdname setters
-setMethod(".setByBaits", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-    x@ByBaits <- y
-    return(x)
-})
+setMethod(".setByBaits", c(x = "HiCaptuRe", y = "list"), function(x, y) .set_slot(x, "ByBaits", y))
 
 ## byRegions
 
@@ -45,7 +39,12 @@ setGeneric(".setByRegions", function(x, y) {
     standardGeneric(".setByRegions")
 })
 #' @rdname setters
-setMethod(".setByRegions", c(x = "HiCaptuRe", y = "list"), function(x, y) {
-    x@ByRegions <- y
-    return(x)
-})
+setMethod(".setByRegions", c(x = "HiCaptuRe", y = "list"), function(x, y) .set_slot(x, "ByRegions", y))
+
+
+#' @keywords internal
+.set_slot <- function(x, slot, value) {
+  methods::slot(x, slot) <- value
+  methods::validObject(x)
+  x
+}

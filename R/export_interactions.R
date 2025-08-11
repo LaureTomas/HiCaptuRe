@@ -53,9 +53,8 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
             "distance", grep("CS_", colnames(int_df), value = TRUE)
         )]
         colnames(int_df) <- c(
-            "baitChr", "baitStart", "baitEnd", "baitID", "baitName",
-            "oeChr", "oeStart", "oeEnd", "oeID", "oeName",
-            "dist", gsub("CS_", "", colnames(int_df)[12:ncol(int_df)])
+            .PEAKMATRIX_COLS,
+            gsub("CS_", "", colnames(int_df)[12:ncol(int_df)])
         )
         data.table::fwrite(int_df, file = file, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
     } else if (format != "peakmatrix" & type == "peakmatrix") {
@@ -116,20 +115,18 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 
 
 .export_ibed <- function(ints, file) {
+    if (.export_empty_if_zero(ints, file)) return(invisible(NULL))
     int_df <- dplyr::as_tibble(ints)[, c(
         "seqnames1", "start1", "end1", "bait_1",
         "seqnames2", "start2", "end2", "bait_2",
         "reads", "CS"
     )]
-    colnames(int_df) <- c(
-        "bait_chr", "bait_start", "bait_end", "bait_name",
-        "otherEnd_chr", "otherEnd_start", "otherEnd_end", "otherEnd_name",
-        "N_reads", "score"
-    )
+    colnames(int_df) <- .IBED_COLS
     data.table::fwrite(int_df, file = file, col.names = TRUE, row.names = FALSE, quote = FALSE, sep = "\t")
 }
 
 .export_washU <- function(ints, file) {
+    if (.export_empty_if_zero(ints, file)) return(invisible(NULL))
     GenomeInfoDb::seqlevelsStyle(ints) <- "UCSC"
     int_df <- dplyr::as_tibble(ints)
     int_df <- dplyr::arrange(int_df, seqnames1, start1, end1, seqnames2, start2, end2)
@@ -142,6 +139,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 }
 
 .export_washUold <- function(ints, file) {
+    if (.export_empty_if_zero(ints, file)) return(invisible(NULL))
     GenomeInfoDb::seqlevelsStyle(ints) <- "UCSC"
     int_df <- as.data.frame(ints)
     washU <- data.frame(
@@ -154,10 +152,7 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 }
 
 .export_bedpe <- function(ints, file) {
-    if (length(ints) == 0) {
-        data.table::fwrite(data.frame(), file = file, col.names = FALSE, row.names = FALSE)
-        return(invisible(NULL))
-    }
+    if (.export_empty_if_zero(ints, file)) return(invisible(NULL))
     ints$name <- seq_len(length(ints))
     int_df <- dplyr::as_tibble(ints)[, c(
         "seqnames1", "start1", "end1",
@@ -169,16 +164,14 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 }
 
 .export_citoscape <- function(ints, file) {
+    if (.export_empty_if_zero(ints, file)) return(invisible(NULL))
     net <- igraph::simplify(export.igraph(ints))
     nodes_edges <- igraph::as_edgelist(net)
     data.table::fwrite(nodes_edges, file = file, col.names = FALSE, row.names = FALSE, quote = FALSE, sep = "\t")
 }
 
 .export_seqmonk <- function(ints, file) {
-    if (length(ints) == 0) {
-        data.table::fwrite(data.frame(), file = file, col.names = FALSE, row.names = FALSE)
-        return(invisible(NULL))
-    }
+  if (.export_empty_if_zero(ints, file)) return(invisible(NULL))
     ints$ID <- seq_len(length(ints))
     df1 <- dplyr::as_tibble(ints)[, c(
         "seqnames2", "start2", "end2", "bait_2",
@@ -192,4 +185,13 @@ export_interactions <- function(interactions, file, format = "ibed", over.write 
 
     seqmonk <- dplyr::bind_rows(df1, stats::setNames(df2, names(df1))) |> dplyr::arrange(ID)
     data.table::fwrite(seqmonk[, -ncol(seqmonk)], file = file, col.names = FALSE, row.names = FALSE, quote = FALSE, sep = "\t")
+}
+
+
+.export_empty_if_zero <- function(ints, file) {
+  if (length(ints) == 0) {
+    data.table::fwrite(data.frame(), file = file, col.names = FALSE, row.names = FALSE)
+    return(TRUE)
+  }
+  FALSE
 }
