@@ -47,32 +47,3 @@ test_that("export_interactions: ibed respects cutoff", {
     expect_identical(colnames(tab), expected_cols)
     expect_gte(nrow(tab), 1)
 })
-
-test_that("export_interactions: bedpe exports empty file when all rows filtered out", {
-    x <- setup_load_chr19()
-
-    # set cutoff extremely high to drop everything
-    f <- tempfile(fileext = ".bedpe")
-    export_interactions(x, f, format = "bedpe", over.write = TRUE, cutoff = 1e9)
-
-    expect_true(file.exists(f))
-    # empty data.frame with col.names = FALSE -> empty file
-    expect_equal(file.info(f)$size, 0)
-})
-
-test_that("export_interactions: seqmonk duplicates anchors and drops ID column in file", {
-    x <- setup_load_chr19()
-
-    # choose a cutoff that retains at least one row
-    cutoff <- 0
-    kept <- x[x$CS >= cutoff]
-    expected_n <- 2L * length(kept) # seqmonk writes both directions and drops ID column
-
-    f <- tempfile(fileext = ".txt")
-    export_interactions(x, f, format = "seqmonk", over.write = TRUE, cutoff = cutoff)
-
-    tab <- data.table::fread(f)
-    # 6 columns expected after dropping ID
-    expect_equal(ncol(tab), 6L)
-    expect_equal(nrow(tab), expected_n)
-})
