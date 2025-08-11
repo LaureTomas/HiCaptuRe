@@ -36,7 +36,7 @@ These files will be used throughout the vignette to showcase the full `HiCaptuRe
 
 Next, we load the package:
 
-```{r, library, comment=F, message=F,library}
+```{r, library, comment=F, message=F}
 library(HiCaptuRe)
 ```
 
