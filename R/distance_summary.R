@@ -6,7 +6,7 @@
 #' @param breaks vector with breaks for split distances
 #' @param sample character variable with the name of the sample
 #'
-#' @return list with 2 tables: short_int_dist_table and long_int_dist_table, with the number of short interactions and long interactions respectivetly
+#' @return list with 2 tables: short_int_dist_table and long_int_dist_table, with the number of short interactions and long interactions respectively
 #'
 #' @importFrom dplyr as_tibble reframe group_by n full_join mutate arrange
 #' @importFrom GenomicInteractions calculateDistances is.cis

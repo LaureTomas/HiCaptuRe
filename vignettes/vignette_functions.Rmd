@@ -456,7 +456,7 @@ plots$int_dist_norm_total
 plots$total_dist_norm_total
 ```
 
-# Extracting Interactions from a Peakmatrix: `peakmatrix2list()`
+# Extracting Interactions from a peakmatrix: `peakmatrix2list()`
 
 The `peakmatrix2list()` function is an **auxiliary utility** designed specifically for working with interaction data stored in **peakmatrix format**. This format is often used in multi-sample Capture Hi-C experiments, such as liCHi-C, where interactions from all samples are consolidated into a single table with per-sample CHiCAGO scores.
 

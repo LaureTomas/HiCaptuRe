@@ -68,7 +68,7 @@ This section defines the key terms used throughout the HiCaptuRe package and Cap
 
 - **Anchor**: One of the two restriction fragments involved in a detected interaction. Each interaction has two anchors: anchor1 and anchor2.
 
-- **Interaction**: A paired-end read (or its postprocessed equivalent) that represents a spatial interaction between two anchors. Depending on the annotation, this interaction may be bait–bait or bait–OE.
+- **Interaction**: A paired-end read (or its post-processed equivalent) that represents a spatial interaction between two anchors. Depending on the annotation, this interaction may be bait–bait or bait–OE.
 
 - **Interactome**: The complete set of interactions detected in a given sample. It can include various interaction classes depending on annotation completeness and data type.
 
@@ -84,7 +84,7 @@ This section defines the key terms used throughout the HiCaptuRe package and Cap
 HiCaptuRe is designed to support workflows based on data generated using the **Capture Hi-C** experimental pipeline. This typically includes:
 
 1. **Chromatin conformation capture (3C)**:
-   Crosslinked DNA is digested with a restriction enzyme (e.g., HindIII) and religated to form hybrid DNA molecules that reflect spatial proximity in the nucleus.
+   Crosslinked DNA is digested with a restriction enzyme (e.g., HindIII) and re-ligated to form hybrid DNA molecules that reflect spatial proximity in the nucleus.
 
 2. **Capture enrichment**:
    A key step in Capture Hi-C is the hybridization of biotinylated oligonucleotide probes to regions of interest (e.g., promoters). This enriches the library for interactions involving those "bait" fragments.
@@ -93,7 +93,7 @@ HiCaptuRe is designed to support workflows based on data generated using the **C
    The ligated DNA is sheared and sequenced to detect paired-end reads representing interactions between restriction fragments.
 
 4. **Read mapping and fragment-level assignment with HiCUP**:
-   The [HiCUP](https://www.bioinformatics.babraham.ac.uk/projects/hicup/) pipeline aligns paired-end Hi-C reads to the reference genome, filters out invalid pairs (e.g., self-ligations, circularized reads, fragments too close), and assigns them to restriction fragments. It also distinguishes between capture and non-capture reads to assess **capture efficiency**. The output is a filtered BAM file.
+   The [HiCUP](https://www.bioinformatics.babraham.ac.uk/projects/hicup/) pipeline aligns paired-end Hi-C reads to the reference genome, filters out invalid pairs (e.g., self-ligation, circularized reads, fragments too close), and assigns them to restriction fragments. It also distinguishes between capture and non-capture reads to assess **capture efficiency**. The output is a filtered BAM file.
 
 5. **Interactions calling with CHiCAGO**:
    The [CHiCAGO](https://bioconductor.org/packages/release/bioc/html/Chicago.html) method assigns confidence scores to each interaction using a background model that accounts for distance and biases in Capture Hi-C. These scores (e.g., “CS”) are commonly included in `ibed` or `peakmatrix` files and used as thresholds for downstream filtering.

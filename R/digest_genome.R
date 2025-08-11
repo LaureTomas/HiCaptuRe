@@ -8,13 +8,13 @@
 #' @param cut_position cut position of the restriction enzyme inside the motif
 #' @param select_chr a character vector containing the specific chromosomes to used from this genome, if NULL all chromosomes will be used
 #' @param PAR_mask a logical value where the Y chromosome should exclude the Pseudoautosomical Regions (PAR) or not
-#' @param PAR_file a full path to a file containing the coordinates of Y chromosome PAR with at least 3 colums with header: seqnames, start, end
+#' @param PAR_file a full path to a file containing the coordinates of Y chromosome PAR with at least 3 columns with header: seqnames, start, end
 #' @param ... extra arguments for read.table
 #'
 #' @return list object with 2 elements: a dataframe with the digested genome, and a the parameters used for the digestion.
 #'
 #' @note The package provides for a PAR coordinates file only for Homo sapiens for the genome version 38
-#' @note The package provides the motives and cut positions for several restriction enzymes (HindII, MboI, DpnII, EcoRI, BamHI)
+#' @note The package provides the motives and cut positions for several restriction enzymes (HindIII, MboI, DpnII, EcoRI, BamHI)
 #'
 #' @importFrom Biostrings replaceAt DNAStringSet matchPattern
 #' @importFrom BSgenome getBSgenome
