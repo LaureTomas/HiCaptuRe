@@ -20,7 +20,7 @@
 #' interactions_baits <- interactionsByBaits(interactions = interactions, baits = baits)
 #'
 #' @export
-interactionsByBaits <- function(interactions, baits, sep = ",", invert = TRUE) {
+interactionsByBaits <- function(interactions, baits, sep = ",", invert = FALSE) {
     one <- vapply(stringr::str_split(as.character(interactions$bait_1), sep), function(x) any(x %in% baits), FUN.VALUE = TRUE)
     two <- vapply(stringr::str_split(as.character(interactions$bait_2), sep), function(x) any(x %in% baits), FUN.VALUE = TRUE)
 
