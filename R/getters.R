@@ -7,10 +7,11 @@
 #' @name getters
 #'
 #' @return
-#' - `getParameters(x)`: a named list of named vectors with all parameters used.
-#' - `getByBaits(x)`: a list of tibbles with bait‑centric summaries.
-#' - `getByRegions(x)`: a list of `GRanges` with region‑centric summaries.
-#'
+#' \describe{
+#'   \item{getParameters(x)}{A named list of named vectors with all parameters used.}
+#'   \item{getByBaits(x)}{A list of tibbles with bait‑centric summaries.}
+#'   \item{getByRegions(x)}{A list of `GRanges` with region‑centric summaries.}
+#' }
 #' @importFrom methods slot
 #'
 #' @examples

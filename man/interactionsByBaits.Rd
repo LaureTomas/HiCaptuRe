@@ -4,7 +4,7 @@
 \alias{interactionsByBaits}
 \title{Filters HiCaptuRe object by baits}
 \usage{
-interactionsByBaits(interactions, baits, sep = ",", invert = TRUE)
+interactionsByBaits(interactions, baits, sep = ",", invert = FALSE)
 }
 \arguments{
 \item{interactions}{a HiCaptuRe object}

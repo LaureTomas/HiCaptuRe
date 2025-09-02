@@ -26,9 +26,11 @@ getByRegions(x)
 \item{x}{A HiCaptuRe object}
 }
 \value{
-- `getParameters(x)`: a named list of named vectors with all parameters used.
-- `getByBaits(x)`: a list of tibbles with bait‑centric summaries.
-- `getByRegions(x)`: a list of `GRanges` with region‑centric summaries.
+\describe{
+  \item{getParameters(x)}{A named list of named vectors with all parameters used.}
+  \item{getByBaits(x)}{A list of tibbles with bait‑centric summaries.}
+  \item{getByRegions(x)}{A list of `GRanges` with region‑centric summaries.}
+}
 }
 \description{
 Use these functions to access data stored in each of the slots of a
