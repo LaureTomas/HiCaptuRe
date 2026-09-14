@@ -10,6 +10,8 @@
 #'
 #' @note This class contains a \link[GenomicInteractions]{GenomicInteractions} object inside therefore all methods available to it can be used. This type of object should be created through the function \link[HiCaptuRe]{load_interactions}
 #'
+#' @import GenomicInteractions
+#' @import InteractionSet
 #' @importFrom methods new callNextMethod slot slotNames as
 #' @importFrom S4Vectors elementMetadata
 #'
@@ -96,6 +98,15 @@ setMethod("show", "HiCaptuRe", function(object) {
     }
 })
 
+#' Coerce a HiCaptuRe object to a data.frame
+#'
+#' @param x A HiCaptuRe object.
+#' @param row.names NULL or a character vector giving the row names for the data frame.
+#' @param optional logical. If TRUE, setting row names and converting column names is optional.
+#' @param ... Additional arguments.
+#'
+#' @return A data.frame containing the interactions and metadata.
+#' @rdname HiCaptuRe-class
 #' @export
 setMethod("as.data.frame", signature(x = "HiCaptuRe"),
           function(x, row.names = NULL, optional = FALSE, ...) {

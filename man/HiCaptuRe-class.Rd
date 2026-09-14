@@ -3,7 +3,23 @@
 \docType{class}
 \name{HiCaptuRe-class}
 \alias{HiCaptuRe-class}
+\alias{as.data.frame,HiCaptuRe-method}
 \title{HiCaptuRe Class}
+\usage{
+\S4method{as.data.frame}{HiCaptuRe}(x, row.names = NULL, optional = FALSE, ...)
+}
+\arguments{
+\item{x}{A HiCaptuRe object.}
+
+\item{row.names}{NULL or a character vector giving the row names for the data frame.}
+
+\item{optional}{logical. If TRUE, setting row names and converting column names is optional.}
+
+\item{...}{Additional arguments.}
+}
+\value{
+A data.frame containing the interactions and metadata.
+}
 \description{
 A S4 class to represent interactions between genomic regions
 }
