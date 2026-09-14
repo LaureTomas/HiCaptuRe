@@ -10,7 +10,7 @@
 #'
 #' @note This class contains a \link[GenomicInteractions]{GenomicInteractions} object inside therefore all methods available to it can be used. This type of object should be created through the function \link[HiCaptuRe]{load_interactions}
 #'
-#' @importFrom methods new callNextMethod slot slotNames
+#' @importFrom methods new callNextMethod slot slotNames as
 #' @importFrom S4Vectors elementMetadata
 #'
 #' @exportClass HiCaptuRe
