@@ -19,5 +19,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Laureano Tomas-Daza \email{lauretomas@gmail.com} (\href{https://orcid.org/0000-0002-6127-1694}{ORCID})
 
+Authors:
+\itemize{
+  \item Laureano Tomas-Daza \email{lauretomas@gmail.com} (\href{https://orcid.org/0000-0002-6127-1694}{ORCID})
+}
+
 }
 \keyword{internal}
