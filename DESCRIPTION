@@ -1,7 +1,7 @@
 Package: HiCaptuRe
 Type: Package
 Title: HiCaptuRe: Manipulating and integrating Capture Hi-C data
-Version: 1.3.6
+Version: 1.3.7
 Authors@R: c(person("Laureano Tomas-Daza", 
                     role = c("aut", "cre"),
                     email = "lauretomas@gmail.com",

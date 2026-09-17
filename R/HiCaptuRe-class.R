@@ -14,6 +14,7 @@
 #' @import InteractionSet
 #' @importFrom methods new callNextMethod slot slotNames as
 #' @importFrom S4Vectors elementMetadata
+#' @importFrom BiocGenerics as.data.frame
 #'
 #' @exportClass HiCaptuRe
 setClass("HiCaptuRe",
@@ -110,5 +111,5 @@ setMethod("show", "HiCaptuRe", function(object) {
 #' @export
 setMethod("as.data.frame", signature(x = "HiCaptuRe"),
           function(x, row.names = NULL, optional = FALSE, ...) {
-            as.data.frame(as(x, "GInteractions"), row.names = row.names, optional = optional, ...)
+            BiocGenerics::as.data.frame(as(x, "GInteractions"), row.names = row.names, optional = optional, ...)
           })
